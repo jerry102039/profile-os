@@ -1,0 +1,10 @@
+---
+import ProjectPage from '../../../views/ProjectPage.astro';
+import { localeStaticPaths } from '../../../i18n/server';
+import { profile } from '../../../profile';
+export const getStaticPaths = () =>
+  (profile.features.projects ? localeStaticPaths() : []).flatMap(({ params, props }) =>
+    profile.projects.map((p) => ({ params: { ...params, slug: p.slug }, props })),
+  );
+---
+<ProjectPage locale={Astro.props.locale} slug={Astro.params.slug!} />

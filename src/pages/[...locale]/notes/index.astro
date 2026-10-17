@@ -1,0 +1,7 @@
+---
+import NotesIndex from '../../../views/NotesIndex.astro';
+import { localeStaticPaths } from '../../../i18n/server';
+import { profile } from '../../../profile';
+export const getStaticPaths = () => (profile.features.notes ? localeStaticPaths() : []);
+---
+<NotesIndex locale={Astro.props.locale} />

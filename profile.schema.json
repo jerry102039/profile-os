@@ -1,0 +1,1498 @@
+{
+  "$ref": "#/definitions/Profile",
+  "definitions": {
+    "Profile": {
+      "type": "object",
+      "properties": {
+        "site": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "version": {
+              "type": "string",
+              "default": ""
+            },
+            "logo": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4
+            },
+            "storageKey": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]+$"
+            },
+            "defaultLocale": {
+              "type": "string",
+              "enum": [
+                "zh-Hant",
+                "en",
+                "zh-Hans",
+                "ja",
+                "ko",
+                "es",
+                "pt-BR",
+                "de",
+                "fr",
+                "ru"
+              ]
+            },
+            "locales": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "zh-Hant",
+                  "en",
+                  "zh-Hans",
+                  "ja",
+                  "ko",
+                  "es",
+                  "pt-BR",
+                  "de",
+                  "fr",
+                  "ru"
+                ]
+              },
+              "minItems": 1
+            },
+            "theme": {
+              "type": "object",
+              "properties": {
+                "accents": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$"
+                  },
+                  "minItems": 1,
+                  "default": [
+                    "#5dffa6",
+                    "#7dd3fc",
+                    "#ffd166",
+                    "#ff7ab6",
+                    "#c792ea",
+                    "#ff8a65"
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "default": {}
+            }
+          },
+          "required": [
+            "name",
+            "url",
+            "logo",
+            "storageKey",
+            "defaultLocale",
+            "locales"
+          ],
+          "additionalProperties": false
+        },
+        "owner": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "zh-Hant",
+                      "en",
+                      "zh-Hans",
+                      "ja",
+                      "ko",
+                      "es",
+                      "pt-BR",
+                      "de",
+                      "fr",
+                      "ru"
+                    ]
+                  }
+                }
+              ]
+            },
+            "username": {
+              "type": "string",
+              "pattern": "^[a-z_][a-z0-9_-]*$"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "github": {
+              "type": "string"
+            },
+            "avatar": {
+              "type": "string"
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "zh-Hant",
+                      "en",
+                      "zh-Hans",
+                      "ja",
+                      "ko",
+                      "es",
+                      "pt-BR",
+                      "de",
+                      "fr",
+                      "ru"
+                    ]
+                  }
+                }
+              ]
+            },
+            "whoami": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "zh-Hant",
+                      "en",
+                      "zh-Hans",
+                      "ja",
+                      "ko",
+                      "es",
+                      "pt-BR",
+                      "de",
+                      "fr",
+                      "ru"
+                    ]
+                  }
+                }
+              ]
+            },
+            "about": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "zh-Hant",
+                      "en",
+                      "zh-Hans",
+                      "ja",
+                      "ko",
+                      "es",
+                      "pt-BR",
+                      "de",
+                      "fr",
+                      "ru"
+                    ]
+                  }
+                }
+              ]
+            },
+            "interests": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "zh-Hant",
+                      "en",
+                      "zh-Hans",
+                      "ja",
+                      "ko",
+                      "es",
+                      "pt-BR",
+                      "de",
+                      "fr",
+                      "ru"
+                    ]
+                  }
+                }
+              ],
+              "default": []
+            },
+            "status": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "zh-Hant",
+                      "en",
+                      "zh-Hans",
+                      "ja",
+                      "ko",
+                      "es",
+                      "pt-BR",
+                      "de",
+                      "fr",
+                      "ru"
+                    ]
+                  }
+                }
+              ]
+            },
+            "description": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "zh-Hant",
+                      "en",
+                      "zh-Hans",
+                      "ja",
+                      "ko",
+                      "es",
+                      "pt-BR",
+                      "de",
+                      "fr",
+                      "ru"
+                    ]
+                  }
+                }
+              ]
+            },
+            "location": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "propertyNames": {
+                        "enum": [
+                          "zh-Hant",
+                          "en",
+                          "zh-Hans",
+                          "ja",
+                          "ko",
+                          "es",
+                          "pt-BR",
+                          "de",
+                          "fr",
+                          "ru"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "lat": {
+                  "type": "number"
+                },
+                "lon": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "name",
+                "lat",
+                "lon"
+              ],
+              "additionalProperties": false
+            },
+            "seo": {
+              "type": "object",
+              "properties": {
+                "affiliation": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "default": "Organization"
+                    },
+                    "name": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "enum": [
+                              "zh-Hant",
+                              "en",
+                              "zh-Hans",
+                              "ja",
+                              "ko",
+                              "es",
+                              "pt-BR",
+                              "de",
+                              "fr",
+                              "ru"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "address": {
+                  "type": "object",
+                  "properties": {
+                    "locality": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "enum": [
+                              "zh-Hant",
+                              "en",
+                              "zh-Hans",
+                              "ja",
+                              "ko",
+                              "es",
+                              "pt-BR",
+                              "de",
+                              "fr",
+                              "ru"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "country": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "locality",
+                    "country"
+                  ],
+                  "additionalProperties": false
+                },
+                "knowsAbout": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "default": []
+                }
+              },
+              "additionalProperties": false,
+              "default": {}
+            }
+          },
+          "required": [
+            "name",
+            "username",
+            "email",
+            "title",
+            "whoami",
+            "about",
+            "status",
+            "description",
+            "location"
+          ],
+          "additionalProperties": false
+        },
+        "resume": {
+          "type": "object",
+          "properties": {
+            "file": {
+              "type": "string",
+              "default": "resume.pdf"
+            },
+            "downloadName": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "zh-Hant",
+                      "en",
+                      "zh-Hans",
+                      "ja",
+                      "ko",
+                      "es",
+                      "pt-BR",
+                      "de",
+                      "fr",
+                      "ru"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "required": [
+            "downloadName"
+          ],
+          "additionalProperties": false
+        },
+        "pages": {
+          "type": "object",
+          "properties": {
+            "projects": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "zh-Hant",
+                      "en",
+                      "zh-Hans",
+                      "ja",
+                      "ko",
+                      "es",
+                      "pt-BR",
+                      "de",
+                      "fr",
+                      "ru"
+                    ]
+                  }
+                }
+              ]
+            },
+            "notes": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "zh-Hant",
+                      "en",
+                      "zh-Hans",
+                      "ja",
+                      "ko",
+                      "es",
+                      "pt-BR",
+                      "de",
+                      "fr",
+                      "ru"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "default": {}
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              },
+              "title": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "propertyNames": {
+                      "enum": [
+                        "zh-Hant",
+                        "en",
+                        "zh-Hans",
+                        "ja",
+                        "ko",
+                        "es",
+                        "pt-BR",
+                        "de",
+                        "fr",
+                        "ru"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "desc": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "propertyNames": {
+                      "enum": [
+                        "zh-Hant",
+                        "en",
+                        "zh-Hans",
+                        "ja",
+                        "ko",
+                        "es",
+                        "pt-BR",
+                        "de",
+                        "fr",
+                        "ru"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "placeholder": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "propertyNames": {
+                      "enum": [
+                        "zh-Hant",
+                        "en",
+                        "zh-Hans",
+                        "ja",
+                        "ko",
+                        "es",
+                        "pt-BR",
+                        "de",
+                        "fr",
+                        "ru"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "context": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "propertyNames": {
+                      "enum": [
+                        "zh-Hant",
+                        "en",
+                        "zh-Hans",
+                        "ja",
+                        "ko",
+                        "es",
+                        "pt-BR",
+                        "de",
+                        "fr",
+                        "ru"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "role": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "propertyNames": {
+                      "enum": [
+                        "zh-Hant",
+                        "en",
+                        "zh-Hans",
+                        "ja",
+                        "ko",
+                        "es",
+                        "pt-BR",
+                        "de",
+                        "fr",
+                        "ru"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "highlights": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "propertyNames": {
+                      "enum": [
+                        "zh-Hant",
+                        "en",
+                        "zh-Hans",
+                        "ja",
+                        "ko",
+                        "es",
+                        "pt-BR",
+                        "de",
+                        "fr",
+                        "ru"
+                      ]
+                    }
+                  }
+                ],
+                "default": []
+              },
+              "outcome": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "propertyNames": {
+                      "enum": [
+                        "zh-Hant",
+                        "en",
+                        "zh-Hans",
+                        "ja",
+                        "ko",
+                        "es",
+                        "pt-BR",
+                        "de",
+                        "fr",
+                        "ru"
+                      ]
+                    }
+                  }
+                ],
+                "default": []
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "image": {
+                "type": "string"
+              },
+              "tone": {
+                "type": "string",
+                "enum": [
+                  "acc",
+                  "acc2"
+                ]
+              },
+              "arch": {
+                "type": "string"
+              },
+              "links": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "enum": [
+                              "zh-Hant",
+                              "en",
+                              "zh-Hans",
+                              "ja",
+                              "ko",
+                              "es",
+                              "pt-BR",
+                              "de",
+                              "fr",
+                              "ru"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "href": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "href"
+                  ],
+                  "additionalProperties": false
+                },
+                "default": []
+              },
+              "timeline": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "year": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "enum": [
+                              "zh-Hant",
+                              "en",
+                              "zh-Hans",
+                              "ja",
+                              "ko",
+                              "es",
+                              "pt-BR",
+                              "de",
+                              "fr",
+                              "ru"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ],
+                  "additionalProperties": false
+                },
+                "default": []
+              }
+            },
+            "required": [
+              "slug",
+              "title",
+              "desc"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "moreProjects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "desc": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "propertyNames": {
+                      "enum": [
+                        "zh-Hant",
+                        "en",
+                        "zh-Hans",
+                        "ja",
+                        "ko",
+                        "es",
+                        "pt-BR",
+                        "de",
+                        "fr",
+                        "ru"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "desc"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "label": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "propertyNames": {
+                      "enum": [
+                        "zh-Hant",
+                        "en",
+                        "zh-Hans",
+                        "ja",
+                        "ko",
+                        "es",
+                        "pt-BR",
+                        "de",
+                        "fr",
+                        "ru"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "pct": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "tone": {
+                "type": "string",
+                "enum": [
+                  "acc",
+                  "acc2"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "label",
+              "pct"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "skillsFooter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "enum": [
+                  "zh-Hant",
+                  "en",
+                  "zh-Hans",
+                  "ja",
+                  "ko",
+                  "es",
+                  "pt-BR",
+                  "de",
+                  "fr",
+                  "ru"
+                ]
+              }
+            }
+          ]
+        },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "propertyNames": {
+                      "enum": [
+                        "zh-Hant",
+                        "en",
+                        "zh-Hans",
+                        "ja",
+                        "ko",
+                        "es",
+                        "pt-BR",
+                        "de",
+                        "fr",
+                        "ru"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "href": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "certSummary": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "propertyNames": {
+                "enum": [
+                  "zh-Hant",
+                  "en",
+                  "zh-Hans",
+                  "ja",
+                  "ko",
+                  "es",
+                  "pt-BR",
+                  "de",
+                  "fr",
+                  "ru"
+                ]
+              }
+            }
+          ],
+          "default": []
+        },
+        "certificates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              },
+              "file": {
+                "type": "string"
+              },
+              "issuer": {
+                "type": "string"
+              },
+              "title": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "propertyNames": {
+                      "enum": [
+                        "zh-Hant",
+                        "en",
+                        "zh-Hans",
+                        "ja",
+                        "ko",
+                        "es",
+                        "pt-BR",
+                        "de",
+                        "fr",
+                        "ru"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "file",
+              "issuer",
+              "title"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "awards": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "propertyNames": {
+                "enum": [
+                  "zh-Hant",
+                  "en",
+                  "zh-Hans",
+                  "ja",
+                  "ko",
+                  "es",
+                  "pt-BR",
+                  "de",
+                  "fr",
+                  "ru"
+                ]
+              }
+            }
+          ],
+          "default": []
+        },
+        "oss": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "propertyNames": {
+                "enum": [
+                  "zh-Hant",
+                  "en",
+                  "zh-Hans",
+                  "ja",
+                  "ko",
+                  "es",
+                  "pt-BR",
+                  "de",
+                  "fr",
+                  "ru"
+                ]
+              }
+            }
+          ],
+          "default": []
+        },
+        "talks": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "propertyNames": {
+                "enum": [
+                  "zh-Hant",
+                  "en",
+                  "zh-Hans",
+                  "ja",
+                  "ko",
+                  "es",
+                  "pt-BR",
+                  "de",
+                  "fr",
+                  "ru"
+                ]
+              }
+            }
+          ],
+          "default": []
+        },
+        "features": {
+          "type": "object",
+          "properties": {
+            "finder": {
+              "type": "boolean",
+              "default": true
+            },
+            "projects": {
+              "type": "boolean",
+              "default": true
+            },
+            "notes": {
+              "type": "boolean",
+              "default": true
+            },
+            "skills": {
+              "type": "boolean",
+              "default": true
+            },
+            "status": {
+              "type": "boolean",
+              "default": true
+            },
+            "taskmgr": {
+              "type": "boolean",
+              "default": true
+            },
+            "music": {
+              "type": "boolean",
+              "default": true
+            },
+            "calculator": {
+              "type": "boolean",
+              "default": true
+            },
+            "calendar": {
+              "type": "boolean",
+              "default": true
+            },
+            "contact": {
+              "type": "boolean",
+              "default": true
+            },
+            "resume": {
+              "type": "boolean",
+              "default": true
+            },
+            "certs": {
+              "type": "boolean",
+              "default": true
+            },
+            "editor": {
+              "type": "boolean",
+              "default": true
+            },
+            "appearance": {
+              "type": "boolean",
+              "default": true
+            },
+            "games": {
+              "type": "object",
+              "properties": {
+                "snake": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "dino": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "mines": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "g2048": {
+                  "type": "boolean",
+                  "default": true
+                }
+              },
+              "additionalProperties": false,
+              "default": {}
+            },
+            "widgets": {
+              "type": "object",
+              "properties": {
+                "weather": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "notes": {
+                  "type": "boolean",
+                  "default": true
+                }
+              },
+              "additionalProperties": false,
+              "default": {}
+            },
+            "ctf": {
+              "type": "boolean",
+              "default": true
+            },
+            "bootAnimation": {
+              "type": "boolean",
+              "default": true
+            },
+            "languageSwitcher": {
+              "type": "boolean",
+              "default": true
+            },
+            "easterEggs": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "additionalProperties": false,
+          "default": {}
+        },
+        "startup": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "about"
+          ]
+        },
+        "persona": {
+          "type": "object",
+          "properties": {
+            "lockPassword": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "default": [
+                "coffee"
+              ]
+            },
+            "calendar": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^\\d\\d-\\d\\d$"
+                  },
+                  "title": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        },
+                        "propertyNames": {
+                          "enum": [
+                            "zh-Hant",
+                            "en",
+                            "zh-Hans",
+                            "ja",
+                            "ko",
+                            "es",
+                            "pt-BR",
+                            "de",
+                            "fr",
+                            "ru"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "date",
+                  "title"
+                ],
+                "additionalProperties": false
+              },
+              "default": []
+            },
+            "matrixGlyphs": {
+              "type": "string",
+              "default": ""
+            },
+            "neofetchArt": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 6,
+              "default": [
+                "   _________    ",
+                "  |  _____  |   ",
+                "  | | >_  | |   ",
+                "  | |_____| |   ",
+                "  |_________|   ",
+                "     _|_|_      "
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "default": {}
+        },
+        "ctf": {
+          "type": "object",
+          "properties": {
+            "flag": {
+              "type": "string",
+              "pattern": "^FLAG\\{[\\x20-\\x7e]+\\}$"
+            },
+            "key": {
+              "type": "string",
+              "minLength": 4
+            }
+          },
+          "required": [
+            "flag",
+            "key"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "site",
+        "owner"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -1,0 +1,50 @@
+---
+import { render } from 'astro:content';
+import Doc from '../layouts/Doc.astro';
+import { profile, type Locale } from '../profile';
+import { noteLocales, fmtDate, type Note } from '../lib/notes';
+import { href, uiFor } from '../i18n/server';
+import { localePath } from '../i18n/locale';
+import { siteOf, abs, graph, person, personRef, breadcrumbs, inLanguage } from '../lib/seo';
+
+interface Props { locale: Locale; note: Note }
+const { locale, note } = Astro.props;
+const { Content } = await render(note);
+// 這篇有哪些語言的原文；note.locale 是目前顯示的版本（可能是 fallback）
+const alternates = await noteLocales(note.slug);
+const og = `${localePath(note.locale)}/notes/${note.slug}`;
+
+const site = siteOf(Astro.site);
+const path = href(locale, `/notes/${note.slug}`);
+const url = abs(site, path);
+const jsonLd = graph(
+  person(site, locale),
+  {
+    '@type': 'BlogPosting',
+    '@id': `${url}#post`,
+    headline: note.data.title,
+    description: note.data.description,
+    datePublished: note.data.date.toISOString(),
+    dateModified: note.data.date.toISOString(),
+    inLanguage: inLanguage(note.locale),
+    keywords: note.data.tags.join(', '),
+    image: abs(site, `/og/${og}.png`),
+    url,
+    mainEntityOfPage: url,
+    author: personRef(site),
+    publisher: personRef(site),
+  },
+  breadcrumbs(site, [[profile.site.name, href(locale, '/')], [uiFor(locale).doc.notes, href(locale, '/notes/')], [note.data.title, path]]),
+);
+---
+<Doc locale={locale} title={note.data.title} description={note.data.description} path={`/notes/${note.slug}`} og={og} type="article" alternates={alternates} jsonLd={jsonLd} article={{ published: note.data.date, tags: note.data.tags }}>
+  <article class="prose" lang={uiFor(note.locale).htmlLang}>
+    <div class="kicker">~/notes/{note.slug}</div>
+    <h1>{note.data.title}</h1>
+    <div class="meta">
+      <time datetime={note.data.date.toISOString()}>{fmtDate(note.data.date, locale)}</time>
+      {note.data.tags.map((tag) => <span>#{tag}</span>)}
+    </div>
+    <Content />
+  </article>
+</Doc>

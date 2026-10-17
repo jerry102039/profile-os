@@ -1,0 +1,48 @@
+---
+import { t$, type Locale, type Project } from '../profile';
+import { uiFor } from '../i18n/server';
+
+interface Props {
+  project: Project;
+  locale: Locale;
+  /** 在獨立頁面用 h1，在視窗裡用 h2 */
+  headingLevel?: 1 | 2;
+}
+const { project: p, locale, headingLevel = 2 } = Astro.props;
+const t = uiFor(locale);
+const title = t$(p.title, locale);
+const context = p.context && t$(p.context, locale);
+const role = p.role && t$(p.role, locale);
+const highlights = t$(p.highlights, locale);
+const outcome = t$(p.outcome, locale);
+const H = headingLevel === 1 ? 'h1' : 'h2';
+const S = headingLevel === 1 ? 'h2' : 'h3';
+---
+<div class="detail">
+  {p.image && <img class="detail-img" src={p.image} alt={title} loading="lazy" decoding="async" />}
+  <H class="detail-title">{title}</H>
+  <p class="detail-lead">{t$(p.desc, locale)}</p>
+  <div class:list={['tags', p.tone === 'acc2' && 'tags-alt']}>{p.tags.map((tag) => <span>{tag}</span>)}</div>
+
+  {context && <><S>{t.detail.context}</S><p>{context}</p></>}
+  {role && <><S>{t.detail.role}</S><p>{role}</p></>}
+  {highlights.length > 0 && <><S>{t.detail.highlights}</S><ul>{highlights.map((h) => <li>{h}</li>)}</ul></>}
+  {p.arch && (
+    <>
+      <S>{t.detail.arch}</S>
+      <pre class="arch" aria-label={t.detail.arch}>{p.arch}</pre>
+    </>
+  )}
+  {p.timeline.length > 0 && (
+    <>
+      <S>{t.detail.timeline}</S>
+      <ol class="timeline">
+        {p.timeline.map((e) => <li><span>{e.year}</span>{t$(e.text, locale)}</li>)}
+      </ol>
+    </>
+  )}
+  {outcome.length > 0 && <><S>{t.detail.outcome}</S><ul class="outcome">{outcome.map((o) => <li>{o}</li>)}</ul></>}
+  {p.links.length > 0 && (
+    <p class="detail-links">{p.links.map((l) => <a href={l.href} target="_blank" rel="noopener">{t$(l.label, locale)} ↗</a>)}</p>
+  )}
+</div>

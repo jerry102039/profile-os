@@ -1,0 +1,10 @@
+name = "profile-os-status"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# 先執行：npx wrangler kv namespace create STATUS，把拿到的 id 貼到下面
+[[kv_namespaces]]
+binding = "STATUS"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# TOKEN 用 secret 設定，不要寫在這裡：npx wrangler secret put TOKEN

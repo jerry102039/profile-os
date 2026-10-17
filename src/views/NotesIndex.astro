@@ -1,0 +1,58 @@
+---
+import Doc from '../layouts/Doc.astro';
+import { profile, t$, contentLocales, type Locale } from '../profile';
+import { href, uiFor, sourceLocale } from '../i18n/server';
+import { localePath } from '../i18n/locale';
+import { getNotes, fmtDate } from '../lib/notes';
+import { siteOf, abs, graph, person, personRef, breadcrumbs, inLanguage } from '../lib/seo';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = uiFor(locale);
+const notes = await getNotes(locale);
+const title = t.doc.notesTitle;
+const description = profile.pages.notes ? t$(profile.pages.notes, locale) : '';
+const alternates = contentLocales(profile.pages.notes);
+
+const site = siteOf(Astro.site);
+const url = abs(site, href(locale, '/notes/'));
+const jsonLd = graph(
+  person(site, locale),
+  {
+    '@type': 'Blog',
+    '@id': `${url}#blog`,
+    name: `${title} — ${profile.site.name}`,
+    description,
+    url,
+    inLanguage: inLanguage(locale),
+    author: personRef(site),
+    blogPost: notes.map((n) => ({
+      '@type': 'BlogPosting',
+      headline: n.data.title,
+      url: abs(site, href(locale, `/notes/${n.slug}`)),
+      datePublished: n.data.date.toISOString(),
+      author: personRef(site),
+    })),
+  },
+  breadcrumbs(site, [[profile.site.name, href(locale, '/')], [title, href(locale, '/notes/')]]),
+);
+---
+<Doc locale={locale} title={title} description={description} path="/notes/" og={`${localePath(sourceLocale(alternates, locale))}/notes`} osHash="notes" alternates={alternates} jsonLd={jsonLd}>
+  <div class="prose">
+    <div class="kicker">~/notes</div>
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </div>
+  {notes.length === 0 && <p class="dim">{t.notesEmpty}</p>}
+  <ul class="note-list">
+    {notes.map((n) => (
+      <li>
+        <a href={href(locale, `/notes/${n.slug}`)}>
+          <time datetime={n.data.date.toISOString()}>{fmtDate(n.data.date, locale)}</time>
+          <b>{n.data.title}</b>
+          <span>{n.data.description}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</Doc>

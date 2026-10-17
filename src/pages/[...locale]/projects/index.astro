@@ -1,0 +1,7 @@
+---
+import ProjectsIndex from '../../../views/ProjectsIndex.astro';
+import { localeStaticPaths } from '../../../i18n/server';
+import { profile } from '../../../profile';
+export const getStaticPaths = () => (profile.features.projects ? localeStaticPaths() : []);
+---
+<ProjectsIndex locale={Astro.props.locale} />

@@ -1,0 +1,31 @@
+# Cloudflare Pages 回應標頭（https://developers.cloudflare.com/pages/configuration/headers/）
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(self)
+  X-Frame-Options: SAMEORIGIN
+  Strict-Transport-Security: max-age=31536000
+
+# 檔名帶 hash 的 JS 與介面字典，內容變了檔名就會變，可以永久快取
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+/i18n/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 分享預覽圖：每次部署才會變
+/og/*
+  Cache-Control: public, max-age=86400
+
+/status.json
+  Cache-Control: public, max-age=30
+
+# 履歷、證照圖與 PDF：檔名固定，換檔後一天內會更新；期間先用舊的、背景重抓
+/resume/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/certs/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/resume.pdf
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/favicon.svg
+  Cache-Control: public, max-age=604800

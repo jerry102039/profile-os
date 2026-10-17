@@ -1,0 +1,29 @@
+---
+// Cloudflare 對所有不存在的網址都回這一頁，所以內嵌每個啟用語言的那幾句話，用網址前綴決定顯示哪一種
+import Doc from '../layouts/Doc.astro';
+import { uiFor, href } from '../i18n/server';
+import { localePath } from '../i18n/locale';
+import { profile, defaultLocale, enabledLocales } from '../profile';
+const t = uiFor(defaultLocale);
+const ps = `${profile.owner.username}@${profile.site.name} ~ %`;
+const texts = Object.fromEntries(enabledLocales.map((l) => [localePath(l), { cmd: uiFor(l).notFound.cmd, back: uiFor(l).notFound.back, home: href(l, '/'), lang: uiFor(l).htmlLang }]));
+---
+<Doc locale={defaultLocale} title={t.notFound.title} description={t.notFound.title} path="/404" og={`${localePath(defaultLocale)}/home`} noindex>
+  <div class="nf" id="nf" data-texts={JSON.stringify(texts)} data-default={localePath(defaultLocale)}>
+    <div><span class="ps">{ps}</span> cd <span id="nf-path">/???</span></div>
+    <div class="err" id="nf-err">{t.notFound.cmd}</div>
+    <div><span class="ps">{ps}</span> <a id="nf-back" href="/">{t.notFound.back}</a></div>
+  </div>
+  <script>
+    const root = document.getElementById('nf')!;
+    const texts = JSON.parse(root.dataset.texts!) as Record<string, { cmd: string; back: string; home: string; lang: string }>;
+    const first = location.pathname.split('/')[1]?.toLowerCase() ?? '';
+    const l = texts[first] ?? texts[root.dataset.default!];
+    document.documentElement.lang = l.lang;
+    document.getElementById('nf-path')!.textContent = decodeURI(location.pathname);
+    document.getElementById('nf-err')!.textContent = l.cmd;
+    const back = document.getElementById('nf-back') as HTMLAnchorElement;
+    back.textContent = l.back;
+    back.href = l.home;
+  </script>
+</Doc>

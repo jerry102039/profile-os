@@ -1,0 +1,67 @@
+---
+import Base from './Base.astro';
+import '../styles/doc.css';
+import { profile, enabledLocales, type Locale } from '../profile';
+import { href, uiFor } from '../i18n/server';
+import { LOCALE_NAMES } from '../i18n/locale';
+
+interface Props {
+  locale: Locale;
+  title: string;
+  description: string;
+  path: string;
+  og: string;
+  /** 「在桌面中開啟」要帶的 hash，例如 'projects/hos-web' */
+  osHash?: string;
+  type?: 'website' | 'article';
+  /** 這頁的內容真的有寫的語言（見 Base.astro） */
+  alternates?: Locale[];
+  noindex?: boolean;
+  jsonLd?: unknown;
+  article?: { published: Date; tags?: string[] };
+}
+const { locale, title, description, path, og, osHash, type, alternates, noindex, jsonLd, article } = Astro.props;
+const t = uiFor(locale);
+const showLang = profile.features.languageSwitcher && enabledLocales.length > 1;
+---
+<Base locale={locale} title={`${title} — ${profile.site.name}`} description={description} path={path} og={og} type={type} bodyClass="doc" alternates={alternates} noindex={noindex} jsonLd={jsonLd} article={article}>
+  <header class="doc-bar">
+    <a class="doc-brand" href={href(locale, '/')}>◈ {profile.site.name}</a>
+    <nav>
+      {profile.features.notes && <a href={href(locale, '/notes/')}>{t.doc.notes}</a>}
+      {profile.features.projects && <a href={href(locale, '/projects/')}>{t.doc.projects}</a>}
+      {showLang && (
+        <details class="doc-lang">
+          <summary aria-label={t.lang.menu} title={t.lang.menu}>{locale.split('-')[0].toUpperCase()}</summary>
+          <ul>
+            {enabledLocales.map((l) => (
+              <li><a href={href(l, path)} hreflang={uiFor(l).htmlLang} lang={uiFor(l).htmlLang} aria-current={l === locale ? 'true' : undefined}>{LOCALE_NAMES[l]}</a></li>
+            ))}
+          </ul>
+        </details>
+      )}
+      <button class="doc-mode" id="doc-mode" aria-label={t.doc.toggleMode} data-key={profile.site.storageKey}><span class="mode-icon"></span></button>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <slot />
+  </main>
+  <footer class="doc-foot">
+    <a href={href(locale, '/')}>{t.doc.back}</a>
+    {osHash && <a href={href(locale, `/#${osHash}`)}>{t.doc.openInOs} ↗</a>}
+  </footer>
+  <script>
+    const r = document.documentElement;
+    const btn = document.getElementById('doc-mode');
+    btn?.addEventListener('click', () => {
+      const next = r.dataset.theme === 'light' ? 'dark' : 'light';
+      r.dataset.theme = next;
+      r.dataset.mode = next;
+      try {
+        const key = btn.dataset.key!;
+        const p = JSON.parse(localStorage.getItem(key) || '{}');
+        localStorage.setItem(key, JSON.stringify({ ...p, mode: next }));
+      } catch {}
+    });
+  </script>
+</Base>

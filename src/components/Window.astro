@@ -1,0 +1,40 @@
+---
+import type { Locale } from '../profile';
+import { uiFor } from '../i18n/server';
+
+interface Props {
+  id: string;
+  title: string;
+  width: number;
+  x: number;
+  y: number;
+  locale: Locale;
+  /** 內容區最大高度；'none' 表示由內容自己決定（仍不會超過螢幕高度） */
+  maxH?: string;
+  bodyClass?: string;
+}
+const { id, title, width, x, y, locale, maxH = '60vh', bodyClass } = Astro.props;
+const t = uiFor(locale);
+---
+<section
+  class="win"
+  id={`win-${id}`}
+  data-win={id}
+  data-x={x}
+  data-y={y}
+  style={`--w:${width}px;--mh:${maxH === 'none' ? '200vh' : maxH}`}
+  aria-label={title}
+  hidden
+>
+  <div class="win-inner">
+    <div class="win-bar" data-drag>
+      <button class="dot dot-close" data-close aria-label={t.close} title={t.close}></button>
+      <button class="dot dot-min" data-min aria-label={t.minimize} title={t.minimize}></button>
+      <button class="dot dot-max" data-max aria-label={t.maximize} title={t.maximize}></button>
+      <div class="win-title" data-title>{title}</div>
+    </div>
+    <div class:list={['win-body', bodyClass]}>
+      <slot />
+    </div>
+  </div>
+</section>

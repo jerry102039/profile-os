@@ -1,0 +1,777 @@
+---
+import Base from '../layouts/Base.astro';
+import '../styles/os.css';
+import Window from './Window.astro';
+import ProjectDetail from './ProjectDetail.astro';
+import { profile, t$, publicUrl, fullName, displayName, defaultLocale, enabledLocales, statusUrl, hasPublic as has, publicPath, pngSize, clientBrand, clientPersona, type Locale, type L as Loc } from '../profile';
+import { href, uiFor, dictAsset } from '../i18n/server';
+import { plural, fmt } from '../i18n/fmt';
+import { LOCALE_NAMES, localePath } from '../i18n/locale';
+import { ctf } from '../lib/ctf';
+import { flatFeatures, enabledApps, resolveStartup, anyGame, entryOn } from '../apps/registry';
+import { getNotes, fmtDate } from '../lib/notes';
+import { existsSync, readdirSync } from 'node:fs';
+import { siteOf, abs, graph, person, website, personRef, inLanguage } from '../lib/seo';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = uiFor(locale);
+const { owner, site, projects, moreProjects, skills, contacts } = profile;
+const L = <T,>(v: Loc<T>) => t$<T>(v, locale);
+const notes = await getNotes(locale);
+// 語言選單：每個啟用語言的首頁，以及用「那個語言」寫的首次造訪提示
+const locales = enabledLocales.map((l) => ({
+  id: l, code: localePath(l), name: LOCALE_NAMES[l], lang: uiFor(l).htmlLang, href: href(l, '/'),
+  suggest: fmt(uiFor(l).lang.suggest, { lang: LOCALE_NAMES[l] }), switch: uiFor(l).lang.switch,
+}));
+const showLang = profile.features.languageSwitcher && locales.length > 1;
+// 功能開關（profile.yaml 的 features）：關掉的視窗、圖示、選單項目都不輸出
+const F = flatFeatures(profile.features, !!profile.ctf);
+const on = enabledApps(F);
+const games = anyGame(F);
+const widgetsAny = F['widgets.weather'] || F['widgets.notes'];
+const resumeFile = profile.resume ? publicUrl(profile.resume.file) : '';
+// 沒放 PDF 時：不出現下載按鈕／選單，視窗顯示說明（範例 profile 就是這樣）
+const hasResumePdf = !!profile.resume && has(profile.resume.file);
+const resumeName = profile.resume ? L(profile.resume.downloadName) : '';
+
+// 證照放在 profile 的 public/certs/：PDF 給下載，同名 PNG/WebP（scripts/certs-to-png.py 產生）給預覽；build 時檢查檔案在不在
+const certList = profile.certificates.map((c) => {
+  const pdf = has(`certs/${c.file}`);
+  const png = has(`certs/${c.id}.png`);
+  const image = has(`certs/${c.id}.webp`) ? `/certs/${c.id}.webp` : png ? `/certs/${c.id}.png` : null;
+  const thumb = has(`certs/${c.id}.thumb.jpg`) ? `/certs/${c.id}.thumb.jpg` : image;
+  const thumbWebp = has(`certs/${c.id}.thumb.webp`) ? `/certs/${c.id}.thumb.webp` : null;
+  return { ...c, title: L(c.title), available: pdf || png, image, thumb, thumbWebp, size: png ? pngSize(`certs/${c.id}.png`) : null, pdf };
+});
+
+// 履歷：scripts/certs-to-png.py 會把 resume.pdf 每頁轉成 resume/<n>.png（＋ <n>.webp、<n>.sm.webp）；有圖就用圖顯示，沒有才退回 PDF
+const resumeDir = publicPath('resume');
+const resumePages = existsSync(resumeDir)
+  ? readdirSync(resumeDir).filter((f) => /^\d+\.png$/.test(f)).sort((a, b) => parseInt(a) - parseInt(b)).map((f) => {
+      const n = f.slice(0, -4);
+      return {
+        png: `/resume/${f}`,
+        webp: has(`resume/${n}.webp`) ? `/resume/${n}.webp` : null,
+        small: has(`resume/${n}.sm.webp`) ? `/resume/${n}.sm.webp` : null,
+        ...pngSize(`resume/${f}`),
+      };
+    })
+  : [];
+// 履歷視窗寬 560px（內距 16px）；手機時視窗貼齊螢幕兩側
+const resumeSizes = '(max-width: 720px) calc(100vw - 46px), 528px';
+
+// Dock 與桌面圖示
+const dock = ([
+  { id: 'finder', icon: '◫' },
+  { id: 'about', icon: '>_' },
+  { id: 'projects', icon: '▤' },
+  { id: 'notes', icon: '✎' },
+  { id: 'skills', icon: '%' },
+  { id: 'status', icon: '◉' },
+  { id: 'taskmgr', icon: '◔' },
+  { id: 'music', icon: '♫' },
+  { id: 'calculator', icon: '±' },
+  { id: 'calendar', icon: '' },
+  { id: 'contact', icon: '@' },
+  { id: 'resume', icon: '↓' },
+] as const).filter((a) => on.has(a.id));
+const desktopIcons = [
+  { id: 'about', icon: '>_', label: 'about.txt' },
+  { id: 'projects', icon: '▤', label: 'projects/' },
+  { id: 'skills', icon: '%', label: 'skills.sys' },
+  { id: 'notes', icon: '✎', label: 'notes/' },
+  { id: 'status', icon: '◉', label: 'monitor.app' },
+  { id: 'certs', icon: '⎙', label: 'certs/' },
+  { id: 'games', icon: '🎮', label: 'games/', act: `finder:/home/${profile.owner.username}/Games` },
+  { id: 'contact', icon: '@', label: 'contact.app' },
+  { id: 'resume', icon: '↓', label: 'resume.pdf' },
+].filter((a) => (a.id === 'games' ? entryOn('games-icon', F, on) : on.has(a.id)));
+
+// 結構化資料：個人檔案頁 + 網站 + 人
+const seoSite = siteOf(Astro.site);
+const pageUrl = abs(seoSite, href(locale, '/'));
+const title = L(owner.title);
+const description = L(owner.description);
+const pageTitle = `${displayName(locale)} — ${title} | ${site.name}`;
+const jsonLd = graph(
+  website(seoSite),
+  person(seoSite, locale),
+  {
+    '@type': 'ProfilePage',
+    '@id': `${pageUrl}#page`,
+    url: pageUrl,
+    name: pageTitle,
+    description,
+    inLanguage: inLanguage(locale),
+    isPartOf: { '@id': abs(seoSite, '/#website') },
+    mainEntity: personRef(seoSite),
+    hasPart: projects.map((p) => ({ '@type': 'CreativeWork', name: L(p.title), url: abs(seoSite, href(locale, `/projects/${p.slug}`)) })),
+  },
+);
+
+const prompt = `${owner.username}@${site.name} ~ %`;
+const d = [0.05, 0.25, 0.4, 0.6, 0.8, 0.95, 1.1, 1.3, 1.45, 1.6];
+const about = L(owner.about);
+const interests = L(owner.interests);
+// 終端機 whoami：預設語言的名字 + 強調色的英文名（兩個一樣就只顯示一個，例如「王小明 Ming Wang」或「Alex Rivera」）
+const nameMain = t$(owner.name, defaultLocale);
+const nameRest = fullName === nameMain ? '' : fullName.slice(nameMain.length).trim();
+
+// 給瀏覽器端腳本的資料（只放目前語言）
+const payload = {
+  locale,
+  locales: showLang ? locales : locales.filter((l) => l.id === locale),
+  email: owner.email,
+  github: owner.github ?? '',
+  resume: on.has('resume') && hasResumePdf ? resumeFile : '',
+  resumeName,
+  about,
+  whoami: L(owner.whoami),
+  interests,
+  certs: L(profile.certSummary),
+  awards: L(profile.awards),
+  oss: L(profile.oss),
+  talks: L(profile.talks),
+  more: moreProjects.map((m) => `${m.name} — ${L(m.desc)}`),
+  projects: (on.has('projects') ? projects : []).map((p) => ({ slug: p.slug, title: L(p.title), desc: L(p.desc), href: href(locale, `/projects/${p.slug}`) })),
+  notes: (on.has('notes') ? notes : []).map((n) => ({ slug: n.slug, title: n.data.title, desc: n.data.description, href: href(locale, `/notes/${n.slug}`) })),
+  ctf: F.ctf ? { keyHex: ctf.keyHex, cipher: ctf.cipher, secret: ctf.secretB64(t.term.secret) } : { keyHex: '', cipher: '', secret: '' },
+  statusUrl,
+  accents: site.theme.accents,
+  certItems: (on.has('certs') ? certList : []).map((c) => ({ id: c.id, file: c.file, title: c.title, issuer: c.issuer, available: c.available, image: c.image })),
+  apps: [...on],
+  features: F,
+  startup: resolveStartup(profile.startup, on),
+  brand: clientBrand(locale),
+  persona: clientPersona(locale),
+  dict: dictAsset(locale).url,
+};
+
+const wifiSvg = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0"/><path d="M5 12a10 10 0 0 1 14 0"/><path d="M8.5 15.5a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>';
+const volSvg = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="vol-w1" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="vol-w2" d="M18.5 5.5a9 9 0 0 1 0 13"/><path class="vol-x" d="m16 9 6 6m0-6-6 6"/></svg>';
+---
+<Base locale={locale} title={pageTitle} jsonLd={jsonLd} ogTitle={`${site.name} — ${fullName}`} description={description} path="/" og={`${localePath(locale)}/home`} bodyClass="os">
+  {F.ctf && <Fragment set:html={`<!--${t.ctfComment}-->`} />}
+  <canvas id="wallpaper" aria-hidden="true"></canvas>
+  <div id="glow" class="glow" aria-hidden="true"></div>
+
+  <!-- ── 選單列 ── -->
+  <header class="menubar">
+    <div class="mb-left">
+      <div class="mb-menu">
+        <button class="mb-btn brand" aria-haspopup="menu">◈ {site.name}</button>
+        <div class="mb-drop" role="menu">
+          <button role="menuitem" data-action="sysinfo">{t.mb.apple.about}</button>
+          <hr />
+          <button role="menuitem" data-action="sleep">{t.mb.apple.sleep}</button>
+          <button role="menuitem" data-action="restart">{t.mb.apple.restart}</button>
+          <button role="menuitem" data-action="shutdown">{t.mb.apple.shutdown}</button>
+          <hr />
+          <button role="menuitem" data-action="lock">{t.mb.apple.lock}<kbd>⌃⌘Q</kbd></button>
+        </div>
+      </div>
+      <strong class="mb-app" id="active-app">{t.appNames.desktop}</strong>
+      <div class="mb-menu mb-hide-sm">
+        <button class="mb-btn" aria-haspopup="menu">{t.mb.file.title}</button>
+        <div class="mb-drop" role="menu">
+          <button role="menuitem" data-action="open:about">{t.mb.file.newTerm}</button>
+          {on.has('finder') && <button role="menuitem" data-action="open:finder">{t.appNames.finder}</button>}
+          <button role="menuitem" data-action="launcher">{t.mb.file.open}<kbd>⌘K</kbd></button>
+          {on.has('resume') && hasResumePdf && <><hr /><button role="menuitem" data-action="download-resume">{t.mb.file.resume}</button></>}
+          <hr />
+          <button role="menuitem" data-action="close-all">{t.mb.file.closeAll}</button>
+        </div>
+      </div>
+      <div class="mb-menu mb-hide-sm">
+        <button class="mb-btn" aria-haspopup="menu">{t.mb.edit.title}</button>
+        <div class="mb-drop" role="menu">
+          <button role="menuitem" data-action="toast:undo">{t.mb.edit.undo}<kbd>⌘Z</kbd></button>
+          <button role="menuitem" data-action="toast:redo">{t.mb.edit.redo}<kbd>⇧⌘Z</kbd></button>
+          <hr />
+          <button role="menuitem" data-action="copy-email">{t.mb.edit.copyEmail}</button>
+          <button role="menuitem" data-action="select-all">{t.mb.edit.selectAll}<kbd>⌘A</kbd></button>
+        </div>
+      </div>
+      <div class="mb-menu mb-hide-sm">
+        <button class="mb-btn" aria-haspopup="menu">{t.mb.view.title}</button>
+        <div class="mb-drop" role="menu">
+          <button role="menuitemradio" data-action="mode:light" data-check="mode:light">{t.mb.view.light}</button>
+          <button role="menuitemradio" data-action="mode:dark" data-check="mode:dark">{t.mb.view.dark}</button>
+          <button role="menuitemradio" data-action="mode:auto" data-check="mode:auto">{t.mb.view.auto}</button>
+          <hr />
+          <button role="menuitemradio" data-action="wallpaper:grid" data-check="wallpaper:grid">{t.mb.view.grid}</button>
+          <button role="menuitemradio" data-action="wallpaper:starfield" data-check="wallpaper:starfield">{t.mb.view.starfield}</button>
+          <button role="menuitemradio" data-action="wallpaper:matrix" data-check="wallpaper:matrix">{t.mb.view.matrix}</button>
+          <button role="menuitemradio" data-action="wallpaper:off" data-check="wallpaper:off">{t.mb.view.off}</button>
+          <hr />
+          {widgetsAny && <button role="menuitemcheckbox" data-action="widgets" data-check="widgets">{t.mb.view.widgets}</button>}
+          {on.has('appearance') && <button role="menuitem" data-action="open:appearance">{t.mb.view.appearance}</button>}
+          <button role="menuitem" data-action="fullscreen">{t.mb.view.fullscreen}<kbd>⌃⌘F</kbd></button>
+          <hr />
+          <button role="menuitem" data-action="tile">{t.mb.view.tile}</button>
+          <button role="menuitem" data-action="cascade">{t.mb.view.cascade}</button>
+        </div>
+      </div>
+      <div class="mb-menu mb-hide-sm">
+        <button class="mb-btn" aria-haspopup="menu">{t.mb.help.title}</button>
+        <div class="mb-drop" role="menu">
+          <button role="menuitem" data-action="term:help">{t.mb.help.commands}</button>
+          <button role="menuitem" data-action="term:shortcuts">{t.mb.help.shortcuts}</button>
+          {F.ctf && <button role="menuitem" data-action="term:hint">{t.mb.help.ctf}</button>}
+          {on.has('contact') && <><hr /><button role="menuitem" data-action="open:contact">{t.mb.help.contact}</button></>}
+          <button role="menuitem" data-action="toast:source">{t.mb.help.source}</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-right">
+      <button class="tray" data-action="launcher" title={t.tray.search} aria-label={t.tray.search}>⌕</button>
+      {F.ctf && <button class="tray tray-flag" id="tray-flag" data-action="toast:flag" title={t.tray.flag} hidden>🏁</button>}
+      <canvas class="tray-cpu mb-hide-sm" id="tray-cpu" width="40" height="14" aria-hidden="true"></canvas>
+      <button class="tray mb-hide-sm" id="tray-coffee" data-action="coffee" title={t.tray.coffee}>☕ <span>87%</span></button>
+      {on.has('music') && <button class="tray tray-music mb-hide-sm" id="tray-music" data-action="open:music" title={t.appNames.music} hidden>♫ <span></span></button>}
+      {showLang && (
+        <div class="mb-menu mb-lang">
+          <button class="mb-btn tray" id="tray-lang" aria-haspopup="menu" title={t.lang.menu} aria-label={t.lang.menu}>{locale.split('-')[0].toUpperCase()}</button>
+          <div class="mb-drop" role="menu">
+            {locales.map((l) => (
+              <a role="menuitemradio" aria-checked={l.code === localePath(locale) ? 'true' : 'false'} class:list={[l.code === localePath(locale) && 'checked']} href={l.href} hreflang={l.lang} lang={l.lang} data-lang={l.code}>{l.name}</a>
+            ))}
+          </div>
+        </div>
+      )}
+      <button class="tray" data-action="mode:toggle" title={t.tray.theme} aria-label={t.tray.theme}><span class="mode-icon"></span></button>
+      <button class="tray tray-qs" id="tray-qs" aria-haspopup="dialog">
+        <span class="sr-only">{t.qs.title}</span>
+        <span class="net-icon" id="net-icon" set:html={wifiSvg} />
+        <span class="vol-icon" id="vol-icon" set:html={volSvg} />
+        <span class="bat" id="bat"><span class="bat-shell"><span class="bat-fill" id="bat-fill"></span></span><span id="bat-pct">87%</span></span>
+      </button>
+      <button class="tray clock" id="clock" data-action={on.has('calendar') ? 'open:calendar' : undefined}></button>
+    </div>
+  </header>
+
+  <!-- ── 快速設定（GNOME 風格） ── -->
+  <div class="qs" id="qs" role="dialog" aria-label={t.qs.title} hidden>
+    <div class="qs-head">
+      <span class="qs-bat" id="qs-bat">87%</span>
+      <span class="qs-actions">
+        <button data-action="lock" title={t.mb.apple.lock} aria-label={t.mb.apple.lock}>🔒</button>
+        <button data-action="restart" title={t.mb.apple.restart} aria-label={t.mb.apple.restart}>↻</button>
+        <button data-action="shutdown" title={t.mb.apple.shutdown} aria-label={t.mb.apple.shutdown}>⏻</button>
+      </span>
+    </div>
+    <label class="qs-slider"><span id="qs-vol-icon" set:html={volSvg} /><input type="range" id="qs-vol" min="0" max="100" value="0" aria-label={t.qs.volume} /></label>
+    <label class="qs-slider"><span>☀</span><input type="range" id="qs-bright" min="35" max="100" value="100" aria-label={t.qs.brightness} /></label>
+    <div class="qs-grid">
+      <button class="qs-tile" data-qs="wifi"><b>Wi-Fi</b><small id="qs-net">—</small></button>
+      <button class="qs-tile" data-qs="bt"><b>{t.qs.bluetooth}</b><small id="qs-bt">—</small></button>
+      <button class="qs-tile" data-qs="dark"><b>{t.qs.dark}</b><small></small></button>
+      <button class="qs-tile" data-qs="night"><b>{t.qs.night}</b><small></small></button>
+      <button class="qs-tile" data-qs="dnd"><b>{t.qs.dnd}</b><small></small></button>
+    </div>
+  </div>
+
+  <!-- ── 桌面圖示 ── -->
+  <nav class="icons" aria-label={t.a11y.desktop}>
+    {desktopIcons.map((a) => (
+      <button class="icon" data-app={a.id} data-act={a.act}>
+        <span class="icon-tile">{a.icon}</span>
+        <span class="icon-label">{a.label}</span>
+      </button>
+    ))}
+  </nav>
+
+  <!-- ── 桌面小工具（內容由 widgets.ts 產生） ── -->
+  <div class="widgets" id="widgets" hidden></div>
+
+  <main>
+    <h1 class="sr-only">{fullName} — {title}</h1>
+
+    <!-- 終端機 -->
+    <Window id="about" locale={locale} title={t.win.about} width={580} x={130} y={80} maxH="55vh" bodyClass="term-body">
+      <div class="term" id="term">
+        <div id="term-intro">
+          <div class="line-in" style={`animation-delay:${d[0]}s`}><span class="ps">{prompt}</span> whoami</div>
+          <div class="line-in term-name" style={`animation-delay:${d[1]}s`}>{nameMain} <span class="acc">{nameRest}</span></div>
+          <div class="line-in muted" style={`animation-delay:${d[2]}s`}>{title}</div>
+          <div class="gap"></div>
+          <div class="line-in" style={`animation-delay:${d[3]}s`}><span class="ps">{prompt}</span> cat about.txt</div>
+          {about.map((l, i) => <div class="line-in" style={`animation-delay:${d[4 + i]}s`}>{l}</div>)}
+          <div class="gap"></div>
+          <div class="line-in" style={`animation-delay:${d[7]}s`}><span class="ps">{prompt}</span> ls ~/interests</div>
+          <div class="line-in acc2" style={`animation-delay:${d[8]}s`}>{interests.join('  ')}</div>
+          <div class="line-in hint" style={`animation-delay:${d[9]}s`}>
+            {t.aboutHint[0]}<span class="acc">{t.aboutHint[1]}</span>{t.aboutHint[2]}<span class="acc">{t.aboutHint[3]}</span>{t.aboutHint[4]}
+          </div>
+        </div>
+        <div id="term-out"></div>
+        <label class="term-input">
+          <span class="ps" id="term-ps">{prompt}</span>
+          <input id="term-input" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="help" aria-label={t.a11y.terminal} />
+        </label>
+      </div>
+    </Window>
+
+    <!-- 檔案總管（內容由 finder.ts 產生） -->
+    {on.has('finder') && (
+      <Window id="finder" locale={locale} title={t.finder.title} width={760} x={200} y={90} maxH="none" bodyClass="finder-body">
+        <div class="finder" id="finder">
+          <aside class="fd-side">
+            <div class="fd-group">{t.finder.favorites}</div>
+            {['Desktop', 'Documents', 'Downloads', 'Projects', 'Notes', 'Applications', 'Games'].filter((p) => (p === 'Projects' ? on.has('projects') : p === 'Notes' ? on.has('notes') : p === 'Games' ? games : true)).map((p) => (
+              <button class="fd-place" data-path={`/home/${owner.username}/${p}`}>{t.finder.places[p]}</button>
+            ))}
+            <div class="fd-group">{t.finder.locations}</div>
+            <button class="fd-place" data-path={`/home/${owner.username}`}>⌂ {t.finder.places.home}</button>
+            <button class="fd-place" data-path="/">◈ {site.name}</button>
+            <button class="fd-place" data-path="/Trash">{t.finder.places.Trash}</button>
+          </aside>
+          <div class="fd-main">
+            <div class="fd-toolbar">
+              <button class="fd-nav" data-fd="back" aria-label={t.finder.back} title={t.finder.back}>‹</button>
+              <button class="fd-nav" data-fd="forward" aria-label={t.finder.forward} title={t.finder.forward}>›</button>
+              <div class="fd-crumbs" id="fd-crumbs"></div>
+              <div class="fd-tools">
+                <button data-fd="empty-trash" id="fd-empty" hidden>{t.finder.emptyTrash}</button>
+                <button data-fd="new-folder" title={t.ctx.newFolder} aria-label={t.ctx.newFolder}>+▰</button>
+                <button data-fd="hidden" title={t.finder.hidden} aria-label={t.finder.hidden}>.*</button>
+                <button data-fd="grid" title={t.finder.grid} aria-label={t.finder.grid}>▦</button>
+                <button data-fd="list" title={t.finder.list} aria-label={t.finder.list}>☰</button>
+                <input type="search" id="fd-search" placeholder={t.finder.search} aria-label={t.finder.search} />
+              </div>
+            </div>
+            <div class="fd-items" id="fd-items" tabindex="0" role="listbox"></div>
+            <div class="fd-status" id="fd-status"></div>
+          </div>
+        </div>
+      </Window>
+    )}
+
+    <!-- 專案列表 -->
+    {on.has('projects') && (
+      <Window id="projects" locale={locale} title={plural(t.win.projects, projects.length, t.dateLocale)} width={700} x={250} y={110}>
+        <div class="projects">
+          {projects.map((p) => (
+            <a class="card" href={href(locale, `/projects/${p.slug}`)} data-project={p.slug}>
+              <div class="card-media">
+                {p.image ? <img src={p.image} alt={L(p.title)} loading="lazy" decoding="async" /> : <div class="slot">{p.placeholder && L(p.placeholder)}</div>}
+              </div>
+              <div class="card-body">
+                <h2>{L(p.title)}</h2>
+                <p>{L(p.desc)}</p>
+                <div class:list={['tags', p.tone === 'acc2' && 'tags-alt']}>{p.tags.slice(0, 3).map((tag) => <span>{tag}</span>)}</div>
+                <span class="card-more">{t.readMore}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+        <div class="more">
+          <div class="more-title">{t.moreProjects}</div>
+          <ul>{moreProjects.map((m) => <li><b>{m.name}</b> — {L(m.desc)}</li>)}</ul>
+        </div>
+      </Window>
+    )}
+
+    <!-- 專案詳情 -->
+    {on.has('project') && (
+      <Window id="project" locale={locale} title={t.win.project} width={640} x={330} y={70} maxH="64vh">
+        {projects.map((p) => (
+          <article class="detail-wrap" data-detail={p.slug} hidden>
+            <ProjectDetail project={p} locale={locale} />
+            <p class="detail-foot"><a href={href(locale, `/projects/${p.slug}`)}>{t.standalone}</a></p>
+          </article>
+        ))}
+      </Window>
+    )}
+
+    <!-- 技能 -->
+    {on.has('skills') && (
+      <Window id="skills" locale={locale} title={t.win.skills} width={540} x={560} y={150}>
+        <div class="skills">
+          <div class="skill-row skill-head">{t.skillsHead.map((h, i) => <div class={i === 3 ? 'r' : ''}>{h}</div>)}</div>
+          {skills.map((s, i) => (
+            <div class:list={['skill-row', s.tone === 'acc2' && 'alt']}>
+              <div class="skill-name">{s.name} <span>{L(s.label)}</span></div>
+              <div class="dim">{101 + i}</div>
+              <div class="bar"><div style={`width:${s.pct}%;animation-delay:${0.1 + i * 0.15}s`}></div></div>
+              <div class="r pct">{s.pct}</div>
+            </div>
+          ))}
+          <div class="skills-foot">{profile.skillsFooter && L(profile.skillsFooter)}</div>
+        </div>
+      </Window>
+    )}
+
+    <!-- 筆記 -->
+    {on.has('notes') && (
+      <Window id="notes" locale={locale} title={t.win.notes} width={480} x={420} y={100}>
+        <div class="notes">
+          {notes.length === 0 && <p class="dim">{t.notesEmpty}</p>}
+          {notes.map((n) => (
+            <a class="note-item" href={href(locale, `/notes/${n.slug}`)}>
+              <span class="note-date">{fmtDate(n.data.date, locale)}</span>
+              <span class="note-title">{n.data.title}</span>
+              <span class="note-desc">{n.data.description}</span>
+            </a>
+          ))}
+          <a class="notes-all" href={href(locale, '/notes/')}>{t.notesAll}</a>
+        </div>
+      </Window>
+    )}
+
+    <!-- Homelab 狀態（內容由 status.ts 產生） -->
+    {on.has('status') && (
+      <Window id="status" locale={locale} title={t.win.status} width={560} x={600} y={90} maxH="64vh">
+        <div class="status" id="status-root"><p class="dim">{t.status.loading}</p></div>
+      </Window>
+    )}
+
+    <!-- 工作管理員（內容由 taskmgr.ts 產生） -->
+    {on.has('taskmgr') && (
+      <Window id="taskmgr" locale={locale} title={t.appNames.taskmgr} width={680} x={360} y={80} maxH="none" bodyClass="tm-body">
+        <div class="tm" id="tm">
+          <div class="tm-tabs" role="tablist">
+            <button role="tab" class="on" aria-selected="true" data-tab="procs">{t.tm.tabs.procs}</button>
+            <button role="tab" aria-selected="false" data-tab="perf">{t.tm.tabs.perf}</button>
+          </div>
+          <section class="tm-pane tm-procs" data-pane="procs">
+            <div class="tm-row tm-head">
+              {(['name', 'pid', 'user', 'state', 'cpu', 'mem'] as const).map((k) => <button class={`c-${k}`} data-sort={k}>{t.tm.cols[k]}</button>)}
+            </div>
+            <div class="tm-rows" id="tm-rows" tabindex="0" role="listbox" aria-label={t.tm.tabs.procs}></div>
+            <div class="tm-foot"><span id="tm-summary"></span><button class="tm-end" id="tm-end" disabled>{t.tm.end}</button></div>
+          </section>
+          <section class="tm-pane tm-perf" data-pane="perf" hidden>
+            <div class="tm-side" id="tm-side"></div>
+            <div class="tm-detail">
+              <div class="tm-dh"><h3 id="tm-title"></h3><span id="tm-big"></span></div>
+              <canvas class="tm-graph" id="tm-graph"></canvas>
+              <p class="tm-src" id="tm-src"></p>
+              <div class="tm-stats" id="tm-stats"></div>
+            </div>
+          </section>
+        </div>
+      </Window>
+    )}
+
+    <!-- 證照 -->
+    {on.has('certs') && (
+      <Window id="certs" locale={locale} title={t.certs.title} width={720} x={260} y={70} maxH="70vh">
+        <div class="certs">
+          {certList.length === 0 && <p class="dim empty-state">{t.empty.certs}</p>}
+          {certList.length > 0 && <p class="certs-sum">{plural(t.certs.count, certList.length, t.dateLocale, { ok: certList.filter((c) => c.available).length })}</p>}
+          <ul class="cert-grid">
+            {certList.map((c) => (
+              <li>
+                {c.available ? (
+                  <button class="cert" data-action={`cert:${c.id}`} title={c.title}>
+                    <span class="cert-thumb">{c.thumb ? (
+                      <picture>
+                        {c.thumbWebp && <source type="image/webp" srcset={c.thumbWebp} />}
+                        <img src={c.thumb} alt={c.title} width={c.size?.width} height={c.size?.height} loading="lazy" decoding="async" />
+                      </picture>
+                    ) : <span class="cert-ico">⎙</span>}</span>
+                    <b>{c.title}</b><small>{c.issuer}</small>
+                  </button>
+                ) : (
+                  <div class="cert missing">
+                    <span class="cert-thumb"><span class="cert-ico">⎙</span><span class="cert-missing">{t.certs.missing}</span></span>
+                    <b>{c.title}</b><small>{c.issuer}</small>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+          {certList.some((c) => !c.available) && <p class="dim certs-hint">{t.certs.hint}</p>}
+        </div>
+      </Window>
+    )}
+
+    <!-- PDF 預覽（證照用；履歷有自己的視窗） -->
+    {on.has('pdf') && (
+      <Window id="pdf" locale={locale} title={t.appNames.pdf} width={620} x={420} y={70} maxH="none" bodyClass="resume-body">
+        <div class="resume">
+          <div class="resume-head"><span class="dim" id="pdf-name"></span><a class="btn" id="pdf-dl" href="#" download>{t.certs.download}</a></div>
+          <div class="pdf-img" id="pdf-imgwrap" hidden><img id="pdf-img" alt="" decoding="async" /></div>
+          <iframe id="pdf-frame" title="PDF" hidden></iframe>
+        </div>
+      </Window>
+    )}
+
+    <!-- nano（內容由 editor.ts 控制） -->
+    {on.has('editor') && (
+      <Window id="editor" locale={locale} title="nano" width={620} x={360} y={90} maxH="none" bodyClass="ed-body">
+        <div class="ed">
+          <textarea id="ed-text" spellcheck="false" aria-label="nano"></textarea>
+          <div class="ed-prompt" id="ed-prompt" hidden tabindex="-1"><span id="ed-prompt-label"></span><input id="ed-prompt-input" spellcheck="false" autocomplete="off" /></div>
+          <div class="ed-bar"><span id="ed-info"></span><span id="ed-status"></span></div>
+          <div class="ed-keys" id="ed-keys">
+            <button data-ed="save"><kbd>^O</kbd> {t.editor.save}</button>
+            <button data-ed="exit"><kbd>^X</kbd> {t.editor.exit}</button>
+            <button data-ed="help"><kbd>^G</kbd> ?</button>
+          </div>
+        </div>
+      </Window>
+    )}
+
+    <!-- 音樂（內容由 music.ts 控制） -->
+    {on.has('music') && (
+      <Window id="music" locale={locale} title={t.appNames.music} width={660} x={380} y={100} maxH="none" bodyClass="mu-body">
+        <div class="mu" id="mu-root" tabindex="0">
+          <div class="mu-main">
+            <div class="mu-art"><span id="mu-glyph">♫</span><canvas id="mu-viz"></canvas></div>
+            <div class="mu-meta"><b id="mu-title"></b><span id="mu-artist"></span></div>
+            <input type="range" class="mu-seek" id="mu-seek" min="0" max="1000" value="0" aria-label={t.a11y.seek} />
+            <div class="mu-time" id="mu-time">0:00 / 0:00</div>
+            <div class="mu-ctl">
+              <button id="mu-shuffle" title={t.music.shuffle} aria-label={t.music.shuffle}>⇄</button>
+              <button id="mu-prev" title={t.music.prev} aria-label={t.music.prev}>⏮</button>
+              <button id="mu-play" class="mu-big" aria-label={t.music.play}>▶</button>
+              <button id="mu-next" title={t.music.next} aria-label={t.music.next}>⏭</button>
+              <button id="mu-repeat" title={t.music.repeat} aria-label={t.music.repeat}>↻</button>
+            </div>
+            <label class="mu-vol"><span set:html={volSvg} /><input type="range" id="mu-vol" min="0" max="100" value="60" aria-label={t.music.volume} /></label>
+            <p class="mu-note" id="mu-note"></p>
+          </div>
+          <aside class="mu-side"><div class="mu-side-h">{t.music.playlist}</div><ul id="mu-list" role="listbox"></ul></aside>
+        </div>
+      </Window>
+    )}
+
+    <!-- 外觀設定（內容由 appearance.ts 產生） -->
+    {on.has('appearance') && (
+      <Window id="appearance" locale={locale} title={t.appearance.title} width={620} x={340} y={80} maxH="70vh">
+        <div class="ap" id="ap-root"></div>
+      </Window>
+    )}
+
+    <!-- 貪食蛇（內容由 snake.ts 控制） -->
+    {on.has('snake') && (
+      <Window id="snake" locale={locale} title={t.games.snake.title} width={400} x={440} y={60} maxH="none">
+        <div class="game">
+          <div class="game-bar"><span>{t.games.score} <b id="snake-score">0</b></span><span>{t.games.best} <b id="snake-best">0</b></span><span class="dim game-hint">{t.games.snake.keys}</span></div>
+          <div class="game-stage">
+            <canvas id="snake-cv" width="360" height="360"></canvas>
+            <div class="game-msg" id="snake-msg"></div>
+          </div>
+          <div class="game-pad" id="snake-pad">
+            <button data-dir="ArrowUp" aria-label="↑">▲</button>
+            <div><button data-dir="ArrowLeft" aria-label="←">◀</button><button data-dir="ArrowDown" aria-label="↓">▼</button><button data-dir="ArrowRight" aria-label="→">▶</button></div>
+          </div>
+        </div>
+      </Window>
+    )}
+
+    <!-- 小恐龍（內容由 dino.ts 控制） -->
+    {on.has('dino') && (
+      <Window id="dino" locale={locale} title={t.games.dino.title} width={640} x={360} y={120} maxH="none">
+        <div class="game">
+          <div class="game-bar"><span>{t.games.score} <b id="dino-score">00000</b></span><span>{t.games.best} <b id="dino-best">00000</b></span><span class="dim game-hint">{t.games.dino.keys}</span></div>
+          <div class="game-stage dino-stage">
+            <canvas id="dino-cv" width="600" height="180"></canvas>
+            <div class="game-msg" id="dino-msg"></div>
+          </div>
+          <div class="game-pad dino-pad"><button id="dino-duck">▼ {t.games.dino.duck}</button><button id="dino-jump">▲ {t.games.dino.jump}</button></div>
+        </div>
+      </Window>
+    )}
+
+    <!-- 踩地雷（內容由 mines.ts 控制） -->
+    {on.has('mines') && (
+      <Window id="mines" locale={locale} title={t.games.mines.title} width={560} x={400} y={60} maxH="none">
+        <div class="game mines">
+          <div class="game-bar">
+            <span class="mines-levels" id="mines-levels"><button data-level="b">{t.games.mines.levels.b}</button><button data-level="i">{t.games.mines.levels.i}</button></span>
+            <span id="mines-best"></span>
+            <span class="dim game-hint">{t.games.mines.keys}</span>
+          </div>
+          <div class="mines-top"><span class="mines-lcd" id="mines-count">010</span><button id="mines-face" aria-label={t.a11y.reset}>🙂</button><span class="mines-lcd" id="mines-time">000</span></div>
+          <div class="mines-board" id="mines-board"></div>
+          <div class="game-msg static" id="mines-msg"></div>
+        </div>
+      </Window>
+    )}
+
+    <!-- 2048（內容由 game2048.ts 控制） -->
+    {on.has('g2048') && (
+      <Window id="g2048" locale={locale} title="2048" width={400} x={480} y={80} maxH="none">
+        <div class="game g2048">
+          <div class="game-bar"><span>{t.games.score} <b id="g2048-score">0</b></span><span>{t.games.best} <b id="g2048-best">0</b></span><button class="btn ghost game-btn" id="g2048-new">{t.games.g2048.newGame}</button></div>
+          <div class="game-stage">
+            <div class="g2048-grid" id="g2048-grid">{Array.from({ length: 16 }).map(() => <i></i>)}</div>
+            <div class="game-msg g2048-msg" id="g2048-msg" hidden></div>
+          </div>
+          <div class="dim game-hint">{t.games.g2048.keys}</div>
+        </div>
+      </Window>
+    )}
+
+    <!-- 計算機 -->
+    {on.has('calculator') && (
+      <Window id="calculator" locale={locale} title={t.appNames.calculator} width={260} x={820} y={110} maxH="none" bodyClass="calc-body">
+        <div class="calc" id="calc">
+          <div class="calc-display"><div class="calc-expr" id="calc-expr"></div><output id="calc-out">0</output></div>
+          <div class="calc-keys">
+            <button class="fn" data-k="clear" id="calc-clear">AC</button>
+            <button class="fn" data-k="neg">±</button>
+            <button class="fn" data-k="pct">%</button>
+            <button class="op" data-k="/">÷</button>
+            <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+            <button class="op" data-k="*">×</button>
+            <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+            <button class="op" data-k="-">−</button>
+            <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+            <button class="op" data-k="+">+</button>
+            <button class="zero" data-k="0">0</button>
+            <button data-k=".">.</button>
+            <button class="op eq" data-k="=">=</button>
+          </div>
+        </div>
+      </Window>
+    )}
+
+    <!-- 行事曆（內容由 calendar.ts 產生） -->
+    {on.has('calendar') && (
+      <Window id="calendar" locale={locale} title={t.appNames.calendar} width={620} x={300} y={120} maxH="none">
+        <div class="cal" id="cal"></div>
+      </Window>
+    )}
+
+    <!-- 聯絡 -->
+    {on.has('contact') && (
+      <Window id="contact" locale={locale} title={t.win.contact} width={420} x={680} y={120}>
+        <div class="contact">
+          <div class="contact-head">
+            {owner.avatar ? <img class="avatar" src={owner.avatar} alt={fullName} width="72" height="72" /> : <div class="avatar slot">{site.logo}</div>}
+            <div>
+              <div class="contact-name">{fullName}</div>
+              <div class="contact-status">status: {L(owner.status)}</div>
+            </div>
+          </div>
+          <div class="contact-list">
+            {contacts.map((c) => {
+              const value = L(c.value);
+              return c.href ? (
+                <a href={c.href} target={c.href.startsWith('http') ? '_blank' : undefined} rel="noopener"><span class="k">{c.label}</span><span>{value}</span></a>
+              ) : (
+                <div class="static"><span class="k">{c.label}</span><span>{value}</span></div>
+              );
+            })}
+          </div>
+        </div>
+      </Window>
+    )}
+
+    <!-- 履歷 -->
+    {on.has('resume') && (
+      <Window id="resume" locale={locale} title={t.win.resume} width={560} x={460} y={150} maxH="none" bodyClass="resume-body">
+        <div class="resume">
+          <div class="resume-head">
+            <span class="dim">{t.resumePreview}</span>
+            {hasResumePdf && <a class="btn" href={resumeFile} download={resumeName}>{t.resumeDownload}</a>}
+          </div>
+          {resumePages.length
+            ? <div class="pdf-img resume-pages">{resumePages.map((p, i) => (
+                <picture>
+                  {p.webp && <source type="image/webp" srcset={p.small ? `${p.small} 800w, ${p.webp} 1600w` : p.webp} sizes={p.small ? resumeSizes : undefined} />}
+                  <img src={p.png} width={p.width} height={p.height} alt={`${resumeName} ${i + 1}`} loading={i ? 'lazy' : 'eager'} fetchpriority={i ? undefined : 'high'} decoding="async" />
+                </picture>
+              ))}</div>
+            : hasResumePdf
+              ? <iframe data-src={resumeFile} title={t.a11y.resumePdf}></iframe>
+              : <p class="dim empty-state">{t.empty.resume}</p>}
+        </div>
+      </Window>
+    )}
+
+    <!-- 文字檢視（檔案總管開 .txt 用） -->
+    <Window id="viewer" locale={locale} title={t.appNames.viewer} width={520} x={380} y={140}>
+      <pre class="viewer" id="viewer-text"></pre>
+    </Window>
+
+    <!-- 關於這台電腦 -->
+    <Window id="sysinfo" locale={locale} title={t.win.sysinfo} width={380} x={540} y={140}>
+      <div class="sysinfo">
+        <div class="boot-logo small">{site.logo}</div>
+        <div class="sys-name">{site.name}</div>
+        <div class="dim">{site.version}</div>
+        <dl>
+          {t.sysinfo.rows.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}
+          <dt>{t.sysinfo.boots}</dt><dd id="sys-boots">1</dd>
+          <dt>{t.sysinfo.uptime}</dt><dd id="sys-uptime">0s</dd>
+          {F.ctf && <><dt>{t.sysinfo.flag}</dt><dd id="sys-flag" data-got={t.sysinfo.got}>{t.sysinfo.notYet}</dd></>}
+        </dl>
+        <button class="btn ghost" data-action="toast:report">{t.sysinfo.report}</button>
+      </div>
+    </Window>
+  </main>
+
+  <!-- ── Dock ── -->
+  <nav class="dock" aria-label={t.a11y.dock}>
+    <div class="dock-apps">
+      {dock.map((a) => (
+        <button class:list={['dock-btn', a.id === 'calendar' && 'dock-cal']} data-open={a.id} aria-label={a.id === 'calendar' ? undefined : t.appNames[a.id]} data-tip={t.appNames[a.id]}>
+          {a.id === 'calendar' ? <><span class="sr-only">{t.appNames.calendar}</span><small id="dock-cal-m">—</small><b id="dock-cal-d">—</b></> : a.icon}
+        </button>
+      ))}
+    </div>
+    <div class="dock-sep"></div>
+    {entryOn('open-trash', F, on) && <button class="dock-btn" data-action="open-trash" aria-label={t.icons.trash} data-tip={t.icons.trash}>⌫</button>}
+  </nav>
+
+  <!-- ── 右鍵選單 ── -->
+  <div class="ctx" id="ctx" role="menu" hidden>
+    <button role="menuitem" data-action="open:about">{t.ctx.terminal}</button>
+    {on.has('finder') && <button role="menuitem" data-action="open:finder">{t.appNames.finder}</button>}
+    <hr />
+    <button role="menuitem" data-action="wallpaper:next">{t.ctx.wallpaper}</button>
+    <button role="menuitem" data-action="mode:toggle">{t.ctx.theme}</button>
+    <hr />
+    {on.has('taskmgr') && <button role="menuitem" data-action="open:taskmgr">{t.ctx.taskmgr}</button>}
+    <button role="menuitem" data-action="tile">{t.ctx.tile}</button>
+    <button role="menuitem" data-action="cascade">{t.ctx.cascade}</button>
+    {entryOn('new-folder', F, on) && <button role="menuitem" data-action="new-folder">{t.ctx.newFolder}</button>}
+    {F['widgets.notes'] && <button role="menuitem" data-action="add-note">{t.ctx.addNote}</button>}
+    {on.has('appearance') && <button role="menuitem" data-action="open:appearance">{t.ctx.appearance}</button>}
+    <hr />
+    <button role="menuitem" data-action="sysinfo">{t.ctx.about}</button>
+  </div>
+
+  <!-- ── 快速開啟 ── -->
+  <div class="launcher" id="launcher" hidden>
+    <div class="launcher-box" role="dialog" aria-label={t.launcher.placeholder}>
+      <input id="launcher-input" placeholder={t.launcher.placeholder} autocomplete="off" spellcheck="false" />
+      <ul id="launcher-list" role="listbox"></ul>
+      <div class="launcher-hint">{t.launcher.hint}</div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="dim-layer" id="dim-layer" aria-hidden="true"></div>
+  <div class="night-layer" id="night-layer" aria-hidden="true"></div>
+  <div class="power" id="power" hidden></div>
+
+  <!-- ── 開機畫面 ── -->
+  <div id="boot" class="boot" role="button" tabindex="0">
+    <span class="sr-only">{t.bootSkip}</span>
+    <div class="boot-inner" aria-hidden="true">
+      <div class="boot-logo">{site.logo}</div>
+      <div class="boot-name">{site.name}</div>
+      <div class="boot-bar"><div></div></div>
+      <div class="boot-log">
+        {t.boot.map((l, i) => (
+          <div class="line-in" style={`animation-delay:${[0.2, 0.8, 1.5, 2.2][i]}s`}>{l}{i === 3 && <span class="cursor">▌</span>}</div>
+        ))}
+      </div>
+      <div class="boot-skip">{t.bootSkip}</div>
+    </div>
+  </div>
+
+  <script type="application/json" id="os-data" set:html={JSON.stringify(payload).replace(/</g, '\\u003c')} />
+  <script>
+    import '../scripts/boot';
+  </script>
+</Base>

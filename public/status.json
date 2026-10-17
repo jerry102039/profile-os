@@ -1,0 +1,14 @@
+{
+  "demo": true,
+  "updated": "2026-10-17T00:00:00Z",
+  "cluster": "homelab",
+  "ceph": "HEALTH_OK",
+  "nodes": [
+    { "name": "pve-01", "online": true, "cpu": 0.23, "mem": 0.61, "uptime": 3888000 },
+    { "name": "pve-02", "online": true, "cpu": 0.41, "mem": 0.58, "uptime": 3888000 },
+    { "name": "pve-03", "online": true, "cpu": 0.17, "mem": 0.66, "uptime": 2592000 },
+    { "name": "truenas", "online": true, "cpu": 0.08, "mem": 0.72, "uptime": 5184000 }
+  ],
+  "vms": { "running": 18, "total": 24 },
+  "cts": { "running": 6, "total": 8 }
+}

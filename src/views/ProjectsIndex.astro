@@ -1,0 +1,62 @@
+---
+import Doc from '../layouts/Doc.astro';
+import { profile, t$, contentLocales, type Locale } from '../profile';
+import { href, uiFor, sourceLocale } from '../i18n/server';
+import { localePath } from '../i18n/locale';
+import { siteOf, abs, graph, person, personRef, breadcrumbs, inLanguage } from '../lib/seo';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const { projects, moreProjects } = profile;
+const t = uiFor(locale);
+const title = t.doc.projectsTitle;
+const description = profile.pages.projects ? t$(profile.pages.projects, locale) : '';
+// 介紹文字有寫的語言才算原文；其他語言的這頁 canonical 指回原文
+const alternates = contentLocales(profile.pages.projects);
+
+const site = siteOf(Astro.site);
+const url = abs(site, href(locale, '/projects/'));
+const jsonLd = graph(
+  person(site, locale),
+  {
+    '@type': 'CollectionPage',
+    '@id': `${url}#page`,
+    name: `${title} — ${profile.site.name}`,
+    description,
+    url,
+    inLanguage: inLanguage(locale),
+    author: personRef(site),
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: projects.map((p, i) => ({
+        '@type': 'ListItem', position: i + 1, name: t$(p.title, locale), url: abs(site, href(locale, `/projects/${p.slug}`)),
+      })),
+    },
+  },
+  breadcrumbs(site, [[profile.site.name, href(locale, '/')], [title, href(locale, '/projects/')]]),
+);
+---
+<Doc locale={locale} title={title} description={description} path="/projects/" og={`${localePath(sourceLocale(alternates, locale))}/projects`} osHash="projects" alternates={alternates} jsonLd={jsonLd}>
+  <div class="prose">
+    <div class="kicker">~/projects</div>
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </div>
+  <ul class="note-list">
+    {projects.map((p) => (
+      <li>
+        <a href={href(locale, `/projects/${p.slug}`)}>
+          <small>{p.tags.join(' · ')}</small>
+          <b>{t$(p.title, locale)}</b>
+          <span>{t$(p.desc, locale)}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+  {moreProjects.length > 0 && (
+    <div class="prose" style="margin-top:32px">
+      <h2>{t.moreProjects}</h2>
+      <ul>{moreProjects.map((m) => <li><b>{m.name}</b> — {t$(m.desc, locale)}</li>)}</ul>
+    </div>
+  )}
+</Doc>

@@ -1,0 +1,48 @@
+---
+import Doc from '../layouts/Doc.astro';
+import ProjectDetail from '../components/ProjectDetail.astro';
+import { profile, t$, contentLocales, type Locale } from '../profile';
+import { href, uiFor, sourceLocale } from '../i18n/server';
+import { localePath } from '../i18n/locale';
+import { siteOf, abs, graph, person, personRef, breadcrumbs, inLanguage } from '../lib/seo';
+
+interface Props { locale: Locale; slug: string }
+const { locale, slug } = Astro.props;
+const { projects } = profile;
+const p = projects.find((x) => x.slug === slug)!;
+const t = uiFor(locale);
+const title = t$(p.title, locale);
+const desc = t$(p.desc, locale);
+// 專案說明有寫的語言才算原文
+const alternates = contentLocales(p.desc);
+const og = `${localePath(sourceLocale(alternates, locale))}/projects/${slug}`;
+
+const site = siteOf(Astro.site);
+const path = href(locale, `/projects/${slug}`);
+const url = abs(site, path);
+const jsonLd = graph(
+  person(site, locale),
+  {
+    '@type': 'CreativeWork',
+    '@id': `${url}#work`,
+    name: title,
+    headline: title,
+    description: desc,
+    ...(p.context ? { abstract: t$(p.context, locale) } : {}),
+    url,
+    inLanguage: inLanguage(locale),
+    image: abs(site, `/og/${og}.png`),
+    keywords: p.tags.join(', '),
+    author: personRef(site),
+    creator: personRef(site),
+  },
+  breadcrumbs(site, [[profile.site.name, href(locale, '/')], [t.doc.projects, href(locale, '/projects/')], [title, path]]),
+);
+---
+<Doc locale={locale} title={title} description={desc} path={`/projects/${slug}`} og={og} osHash={`projects/${slug}`} type="article" alternates={alternates} jsonLd={jsonLd}>
+  <div class="kicker">~/projects/{slug}</div>
+  <ProjectDetail project={p} locale={locale} headingLevel={1} />
+  <p class="dim" style="margin-top:32px;font:12px var(--mono)">{t.doc.projects}: {projects.map((x, i) => (
+    <>{i > 0 && ' · '}{x.slug === slug ? <b>{x.slug}</b> : <a href={href(locale, `/projects/${x.slug}`)}>{x.slug}</a>}</>
+  ))}</p>
+</Doc>

@@ -1,0 +1,145 @@
+# yaml-language-server: $schema=../profile.schema.json
+#
+# This is the example profile that ships with profile-os.
+# Make it yours:  cp -r profile.example profile   (then edit profile/profile.yaml)
+# Full reference: docs/configuration.md
+#
+# Fields marked "localizable" take either one string for every language:
+#     title: Software Engineer
+# or one value per language (missing languages fall back to English, then to site.defaultLocale):
+#     title:
+#       en: Software Engineer
+#       zh-Hant: 軟體工程師
+# Supported language codes: zh-Hant, en, zh-Hans, ja, ko, es, pt-BR, de, fr, ru
+
+site:
+  name: profile-os                 # the OS name in the menu bar, window titles and share images
+  url: https://example.com         # your domain (the SITE_URL environment variable overrides it)
+  version: 'v1.0 “Espresso”'       # shown in "About" and neofetch; can be empty
+  logo: A                          # one or two characters for the boot screen, avatar placeholder and share images
+  storageKey: profile-os           # prefix for what visitors' browsers remember; changing it resets their settings
+  defaultLocale: en                # the language served at /
+  locales: [en, zh-Hant, zh-Hans, ja, ko, es, pt-BR, de, fr, ru]   # languages to build; the first is not special
+  theme:
+    accents: ['#5dffa6', '#7dd3fc', '#ffd166', '#ff7ab6', '#c792ea', '#ff8a65']   # the first one is the default accent
+
+owner:
+  name: Alex Rivera                # localizable — e.g. { en: Alex Rivera, zh-Hant: 艾力克斯 }
+  username: alex                   # used for /home/alex, alex@profile-os, file owners in ls -l
+  email: alex@example.com
+  github: alex-rivera              # optional; the terminal's git joke links to it
+  # avatar: /avatar.jpg            # optional; put the file in profile.example/public/avatar.jpg
+  title: Full-stack Developer      # localizable
+  whoami: Alex Rivera — full-stack developer who likes small, fast websites   # localizable
+  about:                           # localizable list — shown by `cat about.txt`
+    - Hi, I'm Alex. I build web apps and the tools around them.
+    - This whole desktop is a static site. Fork it and make it yours.
+  interests: [web/, tooling/, open-source/, coffee/]   # localizable list
+  status: open to new projects ●   # localizable
+  description: Alex Rivera — full-stack developer. Projects, notes and a résumé, presented as a desktop OS.   # localizable; used for SEO
+  location:                        # default location of the weather widget
+    name: Lisbon                   # localizable
+    lat: 38.7223
+    lon: -9.1393
+  seo:                             # optional schema.org details for search engines
+    knowsAbout: [TypeScript, Astro, Node.js, PostgreSQL]
+    # affiliation: { type: Organization, name: Example Inc. }
+    # address: { locality: Lisbon, country: PT }
+
+resume:
+  file: resume.pdf                 # put it in profile.example/public/resume.pdf, then run: python scripts/certs-to-png.py
+  downloadName: Alex_Rivera_Resume.pdf   # localizable
+
+pages:                             # intro text of the standalone /projects/ and /notes/ pages (localizable, optional)
+  projects: Things Alex has built.
+  notes: Short write-ups by Alex.
+
+projects:
+  - slug: tiny-analytics           # becomes /projects/tiny-analytics
+    tags: [TypeScript, SQLite, Cloudflare Workers]
+    title: Tiny Analytics          # localizable (same for title, desc, placeholder, context, role)
+    desc: A privacy-friendly page-view counter that fits in a single Worker.
+    placeholder: Dashboard screenshot   # text in the image slot when there is no screenshot
+    # image: /projects/tiny-analytics.jpg   # put screenshots in profile.example/public/projects/
+    context: Off-the-shelf analytics scripts were heavier than the sites they measured.
+    role: Designed and built it on weekends.
+    highlights:                    # localizable list
+      - Under 1 KB of client JavaScript, no cookies
+      - Daily roll-ups stored in SQLite
+    outcome:                       # localizable list
+      - Runs on three personal sites for free
+    arch: |2-
+        page --beacon--> Worker --> SQLite
+                           |
+                        dashboard
+    links:
+      - { label: Source, href: 'https://github.com/alex-rivera/tiny-analytics' }
+  - slug: recipe-box
+    tags: [Astro, Markdown]
+    title: Recipe Box
+    desc: A static recipe site generated from a folder of Markdown files.
+    context: Recipes lived in five different apps.
+    role: Solo project.
+    highlights: [Full-text search without a server, Print-friendly layout]
+    outcome: [The whole family uses it on their phones]
+    timeline:
+      - { year: 2025, text: First version }
+      - { year: 2026, text: Added search }
+
+moreProjects:                      # one-line extras listed under the project cards
+  - { name: dotfiles, desc: My shell and editor setup }
+
+skills:                            # the Activity Monitor window; pct is 0–100
+  - { name: typescript.ts, label: TS/Node, pct: 90 }
+  - { name: web.ui, label: { en: Astro/CSS, zh-Hant: Astro/CSS }, pct: 85 }
+  - { name: sql.db, label: Postgres/SQLite, pct: 75, tone: acc2 }
+
+skillsFooter: 'CPU: curiosity 100%  ·  MEM: coffee 87%'   # localizable
+
+contacts:                          # the Contacts window; links open in a new tab
+  - { label: GitHub, value: github.com/alex-rivera, href: 'https://github.com/alex-rivera' }
+  - { label: Email, value: alex@example.com, href: 'mailto:alex@example.com' }
+  - { label: Location, value: { en: 'Lisbon, Portugal', pt-BR: 'Lisboa, Portugal' } }
+
+certSummary: []                    # localizable list for the terminal's `certs` command
+certificates: []                   # e.g. - { id: aws-saa, file: aws-saa.pdf, issuer: AWS, title: AWS Solutions Architect }
+                                   #       then put the PDF in profile.example/public/certs/aws-saa.pdf
+awards: []                         # localizable lists for `awards`, `oss` and `talks`
+oss: [Contributed docs fixes to Astro]
+talks: []
+
+# Turn parts of the desktop off. Everything is on by default; only list what you want to change.
+features:
+  certs: false                     # no certificates in this example
+  # finder: true
+  # projects: true                 # also removes the /projects/ pages
+  # notes: true                    # also removes the /notes/ pages
+  # skills: true
+  # status: true                   # homelab monitor (see homelab/README.md)
+  # taskmgr: true
+  # music: true
+  # calculator: true
+  # calendar: true
+  # contact: true
+  # resume: true
+  # editor: true
+  # appearance: true
+  # games: { snake: true, dino: true, mines: true, g2048: true }
+  # widgets: { weather: true, notes: true }
+  # ctf: true                      # the hidden capture-the-flag puzzle (needs the ctf: section below)
+  # bootAnimation: true
+  # languageSwitcher: true
+  # easterEggs: true               # Konami code, sl, cowsay, kernel panic, confetti
+
+startup: [about]                   # windows opened after boot, in order (the last one ends up on top)
+
+persona:                           # small personal touches; all optional
+  lockPassword: [coffee]           # the lock screen accepts any of these
+  calendar:                        # recurring events shown in the calendar (MM-DD)
+    - { date: 01-01, title: New year 🎉 }
+  # matrixGlyphs: ''               # extra characters for the Matrix wallpaper
+  # neofetchArt: []                # up to 6 lines of ASCII art for neofetch (same width each)
+
+ctf:                               # change both before you publish — this repository makes them public
+  flag: FLAG{change_me_before_publishing}
+  key: change-me

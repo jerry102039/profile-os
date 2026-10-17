@@ -1,0 +1,7 @@
+---
+// 桌面：每個啟用語言一頁（預設語言在 /，其他在 /<代碼>/）
+import Desktop from '../../components/Desktop.astro';
+import { localeStaticPaths } from '../../i18n/server';
+export const getStaticPaths = () => localeStaticPaths();
+---
+<Desktop locale={Astro.props.locale} />

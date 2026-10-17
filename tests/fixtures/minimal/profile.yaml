@@ -1,0 +1,17 @@
+site:
+  name: TestOS
+  url: https://example.com
+  logo: T
+  storageKey: testos
+  defaultLocale: en
+  locales: [en, zh-Hant]
+owner:
+  name: Test Person
+  username: test
+  email: test@example.com
+  title: Tester
+  whoami: Test Person — tester
+  about: [Hello.]
+  status: around
+  description: A test profile.
+  location: { name: Nowhere, lat: 0, lon: 0 }

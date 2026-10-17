@@ -1,0 +1,16 @@
+---
+// 每個啟用語言都有每一篇筆記的頁面；該語言沒寫的就用最接近的版本（見 lib/notes.ts 的 getNotes）
+import NotePage from '../../../views/NotePage.astro';
+import { localeStaticPaths } from '../../../i18n/server';
+import { getNotes } from '../../../lib/notes';
+import { profile } from '../../../profile';
+export async function getStaticPaths() {
+  if (!profile.features.notes) return [];
+  const out = [];
+  for (const { params, props } of localeStaticPaths()) {
+    for (const note of await getNotes(props.locale)) out.push({ params: { ...params, slug: note.slug }, props: { ...props, note } });
+  }
+  return out;
+}
+---
+<NotePage locale={Astro.props.locale} note={Astro.props.note} />

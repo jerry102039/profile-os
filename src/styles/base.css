@@ -1,0 +1,168 @@
+/* ── 設計 token：預設深色，[data-theme=light] 覆寫 ── */
+:root {
+  --acc: #5dffa6;
+  --acc2: #ffd166;
+  --acc-ink: var(--acc);
+  --acc2-ink: var(--acc2);
+  --on-acc: #06110b;
+  --bg: #06090d;
+  --bg-top: #0a0f14;
+  --fg: #e8f6ee;
+  --fg-strong: #ffffff;
+  --fg-2: color-mix(in srgb, var(--fg) 72%, transparent);
+  --fg-3: color-mix(in srgb, var(--fg) 60%, transparent);
+  --fg-4: color-mix(in srgb, var(--fg) 45%, transparent);
+  --fg-5: color-mix(in srgb, var(--fg) 35%, transparent);
+  --term: #cfe9db;
+  --line: rgba(255, 255, 255, .08);
+  --line-2: rgba(255, 255, 255, .12);
+  --fill: rgba(255, 255, 255, .03);
+  --fill-2: rgba(255, 255, 255, .05);
+  --fill-3: rgba(255, 255, 255, .1);
+  --surface: rgba(13, 18, 24, .92);
+  --surface-solid: #0e141a;
+  --bar: rgba(10, 14, 18, .6);
+  --dock: rgba(13, 18, 24, .6);
+  --chip: rgba(6, 9, 13, .6);
+  --shadow: 0 30px 70px rgba(0, 0, 0, .55);
+  --shadow-sm: 0 10px 30px rgba(0, 0, 0, .45);
+  --vignette: rgba(0, 0, 0, .4);
+  --scan: rgba(0, 0, 0, .13);
+  /* --sans-font 由 Base.astro 依語言設定（Noto Sans TC / SC / JP / KR / Noto Sans） */
+  --mono: 'JetBrains Mono', 'JetBrains Mono Fallback', 'JetBrains Mono Fallback Win', var(--sans-font, 'Noto Sans TC'), ui-monospace, monospace;
+  --sans: var(--sans-font, 'Noto Sans TC'), system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --acc-ink: color-mix(in oklab, var(--acc) 52%, #000);
+  --acc2-ink: color-mix(in oklab, var(--acc2) 55%, #000);
+  --bg: #e9efeb;
+  --bg-top: #f6f9f7;
+  --fg: #15201a;
+  --fg-strong: #08100b;
+  --fg-2: color-mix(in srgb, var(--fg) 78%, transparent);
+  --fg-3: color-mix(in srgb, var(--fg) 68%, transparent);
+  --fg-4: color-mix(in srgb, var(--fg) 56%, transparent);
+  --fg-5: color-mix(in srgb, var(--fg) 46%, transparent);
+  --term: #1d3628;
+  --line: rgba(0, 0, 0, .09);
+  --line-2: rgba(0, 0, 0, .14);
+  --fill: rgba(0, 0, 0, .025);
+  --fill-2: rgba(0, 0, 0, .045);
+  --fill-3: rgba(0, 0, 0, .08);
+  --surface: rgba(255, 255, 255, .9);
+  --surface-solid: #ffffff;
+  --bar: rgba(255, 255, 255, .62);
+  --dock: rgba(255, 255, 255, .55);
+  --chip: rgba(255, 255, 255, .75);
+  --shadow: 0 24px 60px rgba(20, 40, 30, .2);
+  --shadow-sm: 0 10px 30px rgba(20, 40, 30, .16);
+  --vignette: rgba(0, 0, 0, .07);
+  --scan: rgba(0, 0, 0, .05);
+  color-scheme: light;
+}
+
+/* ── 佈景主題：只換顏色 token，版面不動。深色用 :not(light) 以免壓過淺色規則 ── */
+:root[data-palette='tokyo']:not([data-theme='light']) { --acc: #7aa2f7; --acc2: #bb9af7; --on-acc: #10131f; --bg: #1a1b26; --bg-top: #24283b; --fg: #c0caf5; --fg-strong: #e6ecff; --term: #a9b1d6; --surface: rgba(26, 27, 38, .92); --surface-solid: #1f2335; --bar: rgba(26, 27, 38, .65); --dock: rgba(26, 27, 38, .65); --chip: rgba(26, 27, 38, .7); }
+:root[data-palette='tokyo'][data-theme='light'] { --acc: #2e7de9; --acc2: #9854f1; --on-acc: #fff; --bg: #d5d6db; --bg-top: #e9e9ed; --fg: #343b58; --fg-strong: #1f2335; --term: #343b58; --surface: rgba(236, 237, 241, .92); --surface-solid: #f2f3f7; --bar: rgba(236, 237, 241, .65); --dock: rgba(236, 237, 241, .6); }
+:root[data-palette='nord']:not([data-theme='light']) { --acc: #88c0d0; --acc2: #ebcb8b; --on-acc: #2e3440; --bg: #2e3440; --bg-top: #3b4252; --fg: #eceff4; --fg-strong: #fff; --term: #d8dee9; --surface: rgba(46, 52, 64, .92); --surface-solid: #3b4252; --bar: rgba(46, 52, 64, .65); --dock: rgba(46, 52, 64, .65); --chip: rgba(46, 52, 64, .7); }
+:root[data-palette='nord'][data-theme='light'] { --acc: #5e81ac; --acc2: #d08770; --on-acc: #fff; --bg: #e5e9f0; --bg-top: #eceff4; --fg: #2e3440; --fg-strong: #242933; --term: #3b4252; --surface: rgba(236, 239, 244, .92); --surface-solid: #f4f6f9; --bar: rgba(236, 239, 244, .65); --dock: rgba(236, 239, 244, .6); }
+:root[data-palette='gruvbox']:not([data-theme='light']) { --acc: #b8bb26; --acc2: #fe8019; --on-acc: #282828; --bg: #282828; --bg-top: #32302f; --fg: #ebdbb2; --fg-strong: #fbf1c7; --term: #d5c4a1; --surface: rgba(40, 40, 40, .93); --surface-solid: #3c3836; --bar: rgba(40, 40, 40, .65); --dock: rgba(40, 40, 40, .65); --chip: rgba(40, 40, 40, .7); }
+:root[data-palette='gruvbox'][data-theme='light'] { --acc: #79740e; --acc2: #af3a03; --on-acc: #fff; --bg: #fbf1c7; --bg-top: #f9f5d7; --fg: #3c3836; --fg-strong: #282828; --term: #504945; --surface: rgba(251, 241, 199, .93); --surface-solid: #f9f5d7; --bar: rgba(251, 241, 199, .65); --dock: rgba(251, 241, 199, .6); }
+:root[data-palette='dracula']:not([data-theme='light']) { --acc: #50fa7b; --acc2: #ff79c6; --on-acc: #282a36; --bg: #282a36; --bg-top: #343746; --fg: #f8f8f2; --fg-strong: #fff; --term: #f8f8f2; --surface: rgba(40, 42, 54, .93); --surface-solid: #343746; --bar: rgba(40, 42, 54, .65); --dock: rgba(40, 42, 54, .65); --chip: rgba(40, 42, 54, .7); }
+:root[data-palette='dracula'][data-theme='light'] { --acc: #1d9a42; --acc2: #d2358f; --on-acc: #fff; --bg: #f0f0f4; --bg-top: #fff; --fg: #282a36; --fg-strong: #1a1b23; --term: #44475a; --surface: rgba(255, 255, 255, .92); --surface-solid: #fff; --bar: rgba(255, 255, 255, .65); --dock: rgba(255, 255, 255, .6); }
+:root[data-palette='catppuccin']:not([data-theme='light']) { --acc: #cba6f7; --acc2: #f9e2af; --on-acc: #1e1e2e; --bg: #1e1e2e; --bg-top: #313244; --fg: #cdd6f4; --fg-strong: #fff; --term: #bac2de; --surface: rgba(30, 30, 46, .93); --surface-solid: #313244; --bar: rgba(30, 30, 46, .65); --dock: rgba(30, 30, 46, .65); --chip: rgba(30, 30, 46, .7); }
+:root[data-palette='catppuccin'][data-theme='light'] { --acc: #8839ef; --acc2: #df8e1d; --on-acc: #fff; --bg: #eff1f5; --bg-top: #fff; --fg: #4c4f69; --fg-strong: #303446; --term: #5c5f77; --surface: rgba(255, 255, 255, .92); --surface-solid: #fff; --bar: rgba(255, 255, 255, .65); --dock: rgba(255, 255, 255, .6); }
+:root[data-palette='solarized']:not([data-theme='light']) { --acc: #2aa198; --acc2: #b58900; --on-acc: #002b36; --bg: #002b36; --bg-top: #073642; --fg: #eee8d5; --fg-strong: #fdf6e3; --term: #93a1a1; --surface: rgba(0, 43, 54, .93); --surface-solid: #073642; --bar: rgba(0, 43, 54, .65); --dock: rgba(0, 43, 54, .65); --chip: rgba(0, 43, 54, .7); }
+:root[data-palette='solarized'][data-theme='light'] { --acc: #268bd2; --acc2: #cb4b16; --on-acc: #fff; --bg: #fdf6e3; --bg-top: #fffcf0; --fg: #073642; --fg-strong: #002b36; --term: #586e75; --surface: rgba(253, 246, 227, .93); --surface-solid: #fffcf0; --bar: rgba(253, 246, 227, .65); --dock: rgba(253, 246, 227, .6); }
+:root[data-palette='amber']:not([data-theme='light']) { --acc: #ffb000; --acc2: #ff6a00; --on-acc: #140f08; --bg: #0b0804; --bg-top: #140f08; --fg: #ffcc66; --fg-strong: #ffe3a3; --term: #ffb000; --surface: rgba(14, 10, 4, .94); --surface-solid: #1a130a; --bar: rgba(14, 10, 4, .65); --dock: rgba(14, 10, 4, .65); --chip: rgba(14, 10, 4, .7); }
+:root[data-palette='amber'][data-theme='light'] { --acc: #b26b00; --acc2: #c23b00; --on-acc: #fff; --bg: #f3e9d2; --bg-top: #fbf5e6; --fg: #3d2b0c; --fg-strong: #2a1d06; --term: #5a4218; --surface: rgba(251, 245, 230, .93); --surface-solid: #fbf5e6; --bar: rgba(251, 245, 230, .65); --dock: rgba(251, 245, 230, .6); }
+:root[data-palette='rose']:not([data-theme='light']) { --acc: #ebbcba; --acc2: #f6c177; --on-acc: #191724; --bg: #191724; --bg-top: #1f1d2e; --fg: #e0def4; --fg-strong: #fff; --term: #c4a7e7; --surface: rgba(25, 23, 36, .93); --surface-solid: #26233a; --bar: rgba(25, 23, 36, .65); --dock: rgba(25, 23, 36, .65); --chip: rgba(25, 23, 36, .7); }
+:root[data-palette='rose'][data-theme='light'] { --acc: #d7827e; --acc2: #ea9d34; --on-acc: #fff; --bg: #faf4ed; --bg-top: #fffaf3; --fg: #575279; --fg-strong: #3e3a5c; --term: #797593; --surface: rgba(255, 250, 243, .93); --surface-solid: #fffaf3; --bar: rgba(255, 250, 243, .65); --dock: rgba(255, 250, 243, .6); }
+
+/* 網路字型載入前用系統等寬字頂替（mac 用 Menlo、Linux 用 DejaVu、Windows 用 Consolas），
+   並把字寬／行高調成和 JetBrains Mono 一樣，換字時版面才不會跳 */
+@font-face {
+  font-family: 'JetBrains Mono Fallback';
+  src: local('Menlo'), local('DejaVu Sans Mono');
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'JetBrains Mono Fallback Win';
+  src: local('Consolas');
+  size-adjust: 109%;
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: linear-gradient(180deg, var(--bg-top), var(--bg)) fixed;
+  font-family: var(--sans);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--acc-ink); text-decoration: none; }
+a:hover { color: var(--fg-strong); }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+button, a, label, summary { -webkit-tap-highlight-color: transparent; }
+input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--acc) 30%, transparent); }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.acc { color: var(--acc-ink); }
+.acc2 { color: var(--acc2-ink); }
+.dim { color: var(--fg-4); }
+
+@keyframes lineIn { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+@keyframes blink { 0%, 49% { opacity: 1 } 50%, 100% { opacity: 0 } }
+.line-in { animation: lineIn .3s both; }
+
+/* 共用元件 */
+.tags { display: flex; gap: 6px; flex-wrap: wrap; font: 10px var(--mono); color: var(--acc-ink); }
+.tags span { border: 1px solid color-mix(in srgb, var(--acc) 40%, transparent); border-radius: 4px; padding: 1px 6px; }
+.tags-alt { color: var(--acc2-ink); }
+.tags-alt span { border-color: color-mix(in srgb, var(--acc2) 40%, transparent); }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 7px;
+  background: var(--acc); color: var(--on-acc); font: 700 12px var(--sans); white-space: nowrap;
+}
+.btn:hover { color: var(--on-acc); filter: brightness(1.08); }
+.btn.ghost { background: var(--fill-2); color: var(--fg); border: 1px solid var(--line-2); font-weight: 500; }
+.btn.ghost:hover { color: var(--fg-strong); background: var(--fill-3); }
+
+/* 專案詳情（視窗與獨立頁共用） */
+.detail { font-size: 14px; line-height: 1.75; color: var(--fg-2); }
+.detail-img { width: 100%; border-radius: 10px; margin-bottom: 14px; display: block; }
+.detail-title { margin: 0 0 6px; color: var(--fg-strong); line-height: 1.35; }
+h2.detail-title { font-size: 20px; }
+.detail-lead { margin: 0 0 10px; color: var(--fg-3); }
+.detail h2:not(.detail-title), .detail h3 {
+  margin: 22px 0 6px; font: 700 11px var(--mono); letter-spacing: 1.5px; text-transform: uppercase; color: var(--acc-ink);
+}
+.detail p { margin: 0; }
+.detail ul, .detail ol { margin: 0; padding-left: 20px; }
+.detail li { margin: 2px 0; }
+.detail li::marker { color: var(--acc-ink); }
+.detail .outcome li { color: var(--fg); }
+.arch {
+  margin: 0; padding: 14px 16px; border-radius: 8px; background: var(--fill-2); border: 1px solid var(--line);
+  font: 12px/1.55 var(--mono); color: var(--term); overflow-x: auto; white-space: pre;
+  font-variant-ligatures: none;
+}
+.timeline { list-style: none; padding: 0 !important; border-left: 2px solid var(--line-2); margin-left: 4px !important; }
+.timeline li { position: relative; padding-left: 16px; margin: 6px 0; }
+.timeline li::before { content: ''; position: absolute; left: -6px; top: 9px; width: 10px; height: 10px; border-radius: 50%; background: var(--acc); }
+.timeline span { font: 700 12px var(--mono); color: var(--acc-ink); margin-right: 10px; }
+.detail-links { margin-top: 16px !important; display: flex; gap: 14px; flex-wrap: wrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001s !important; animation-delay: 0s !important; transition: none !important; }
+}

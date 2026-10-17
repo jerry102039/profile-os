@@ -1,0 +1,27 @@
+# 每次 push / PR 都跑測試、型別檢查與 build，確保部署不會壞掉。
+# 有 profile/ 的 repo（自己的網站）會 build 兩次：自己的 profile 與 profile.example/，確保範例也一直能用。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run check
+      - run: npm run build
+      - name: Build the example profile
+        if: hashFiles('profile/profile.yaml') != ''
+        run: npm run build -- --outDir dist-example
+        env:
+          PROFILE_DIR: profile.example
